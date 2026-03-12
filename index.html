@@ -1,0 +1,545 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Premium Liquid OS Calendar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #09090b;
+      --panel: rgba(20, 20, 22, 0.65);
+      --text: #ffffff;
+      --muted: #52525b;
+      --accent: #8b5cf6;
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --shadow: 0 40px 80px rgba(0,0,0,0.5);
+      --mask-gradient: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+    }
+
+    [data-theme="light"] {
+      --bg: #f4f5f7;
+      --panel: rgba(255, 255, 255, 0.75);
+      --text: #1f2937;
+      --muted: #8e8e93;
+      --glass-border: rgba(255, 255, 255, 0.5);
+      --shadow: 0 20px 50px rgba(0,0,0,0.05);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; touch-action: pan-y; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      color: var(--text);
+      transition: background 0.5s ease;
+      overflow: hidden;
+    }
+
+    .app-card {
+      width: 95%;
+      max-width: 1000px;
+      background: var(--panel);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1px solid var(--glass-border);
+      border-radius: 40px;
+      box-shadow: var(--shadow);
+      padding: 50px;
+      position: relative;
+    }
+
+    /* --- РЁРђРџРљРђ --- */
+    .header-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 50px;
+      position: relative;
+    }
+
+    .year-label {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      width: 120px;
+      transition: color 0.3s;
+    }
+    .year-label:hover { color: var(--text); }
+
+    .month-title {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      cursor: pointer;
+      transition: opacity 0.3s;
+    }
+
+    .controls-group {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 20px;
+      width: 120px;
+    }
+
+    /* РўРѕРіР» С‚РµРјС‹ */
+    .theme-toggle {
+      width: 44px; height: 24px;
+      background: rgba(128,128,128,0.1);
+      border-radius: 20px;
+      position: relative; cursor: pointer;
+      border: 1px solid var(--glass-border);
+      flex-shrink: 0;
+    }
+    .toggle-knob {
+      width: 16px; height: 16px;
+      background: var(--accent);
+      border-radius: 50%;
+      position: absolute; top: 3px; transform: translateX(23px);
+      transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    [data-theme="light"] .toggle-knob { transform: translateX(3px); background: var(--text); }
+
+    /* Р‘СѓСЂРіРµСЂ */
+    .burger-menu {
+      display: flex; flex-direction: column; gap: 5px;
+      cursor: pointer; flex-shrink: 0;
+    }
+    .burger-line { width: 22px; height: 2px; background: var(--text); border-radius: 2px; transition: 0.3s; }
+    .burger-menu:hover .burger-line:nth-child(2) { transform: translateX(4px); }
+
+    /* --- РљРћРќРўР•Р™РќР•Р  РЎР›РћР•Р’ РЎ Р РђРЎРўР’РћР Р•РќРР•Рњ РљР РђР•Р’ --- */
+    .view-container {
+      position: relative;
+      width: 100%;
+      min-height: 400px;
+      overflow: hidden;
+    }
+
+    /* РЎР»РѕР№ */
+    .layer {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.9);
+      transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .layer.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+
+    /* --- РЎР•РўРљР --- */
+    .grid-header {
+      display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 15px;
+    }
+    .grid-header span {
+      font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--muted); text-align: center; letter-spacing: 2px;
+    }
+
+    .grid-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 15px; }
+    .grid-months { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; height: 100%; align-content: center; }
+    .grid-years { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; height: 100%; align-content: center; }
+
+    /* РћР±С‰РёРµ СЃС‚РёР»Рё СЏС‡РµРµРє */
+    .cell {
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 16px; cursor: pointer; position: relative;
+      color: var(--text); font-weight: 400;
+      transition: background 0.3s, transform 0.2s;
+      opacity: 1;
+    }
+    .cell.day { aspect-ratio: 1.2 / 1; font-size: 18px; }
+    .cell.month { aspect-ratio: 2 / 1; font-size: 20px; flex-direction: column; gap: 4px; }
+    .cell.year { aspect-ratio: 1.5 / 1; font-size: 18px; }
+    
+    .cell:hover:not(.dimmed) { background: rgba(128,128,128,0.08); }
+    .cell.dimmed { opacity: 0.2 !important; cursor: default; }
+
+    /* РџРѕРґРїРёСЃСЊ РЅРѕРјРµСЂР° РјРµСЃСЏС†Р° (01, 02...) */
+    .month-sub { font-size: 12px; color: var(--muted); font-weight: 600; }
+
+    /* Р­С„С„РµРєС‚ РЎРµРіРѕРґРЅСЏ */
+    .cell.today { font-size: 28px; font-weight: 700; }
+    .cell.today::before {
+      content: ''; position: absolute; width: 50px; height: 50px;
+      background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+      opacity: 0.35; z-index: -1; animation: pulse 3s infinite ease-in-out;
+    }
+    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.2; } 50% { transform: scale(1.3); opacity: 0.5; } }
+
+    /* РђРЅРёРјР°С†РёРё СЏС‡РµРµРє */
+    @keyframes itemPopIn {
+      0% { opacity: 0; transform: scale(0.8) translateY(10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @keyframes itemFadeOut {
+      0% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(0.8) translateY(-10px); }
+    }
+    
+    /* РЎРґРІРёРі РІР»РµРІРѕ/РІРїСЂР°РІРѕ РїСЂРё РїРµСЂРµР»РёСЃС‚С‹РІР°РЅРёРё РєРѕР»РµСЃРѕРј/СЃРІР°Р№РїРѕРј */
+    @keyframes slideNextIn { 0% { opacity: 0; transform: translateX(50px); } 100% { opacity: 1; transform: translateX(0); } }
+    @keyframes slidePrevIn { 0% { opacity: 0; transform: translateX(-50px); } 100% { opacity: 1; transform: translateX(0); } }
+
+    /* --- РћРќР‘РћР Р”РРќР“ (РЎРРќРР™ РџРђР›Р•Р¦/РўРћР§РљРђ) --- */
+    .onboarding-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4); backdrop-filter: blur(5px);
+      z-index: 100; display: none; align-items: center; justify-content: center;
+    }
+    .gesture-track {
+      width: 80%; max-width: 400px; height: 100px; position: relative;
+    }
+    .blue-dot {
+      position: absolute; top: 50%; left: 0; width: 24px; height: 24px;
+      background: #0a84ff; border-radius: 50%; transform: translateY(-50%);
+      box-shadow: 0 0 20px #0a84ff;
+    }
+    /* РҐРІРѕСЃС‚ РєРѕРјРµС‚С‹ СЂРµР°Р»РёР·СѓРµРј С‡РµСЂРµР· РїСЃРµРІРґРѕСЌР»РµРјРµРЅС‚, С€РёСЂРёРЅР° РєРѕС‚РѕСЂРѕРіРѕ РјРµРЅСЏРµС‚СЃСЏ */
+    .blue-dot::after {
+      content: ''; position: absolute; top: 50%; right: 100%; transform: translateY(-50%);
+      height: 8px; width: 0px; background: linear-gradient(to left, #0a84ff, transparent);
+      border-radius: 10px; opacity: 0; transition: opacity 0.2s;
+    }
+    
+    /* РђРЅРёРјР°С†РёСЏ: Р’РїСЂР°РІРѕ (Р±С‹СЃС‚СЂРѕ) -> Р’РїСЂР°РІРѕ (РјРµРґР»РµРЅРЅРѕ) -> Р’Р»РµРІРѕ (Р±С‹СЃС‚СЂРѕ) -> Р’Р»РµРІРѕ (РјРµРґР»РµРЅРЅРѕ) */
+    .animate-gesture .blue-dot {
+      animation: swipeGesture 4s ease-in-out 2; /* 2 РїРѕРІС‚РѕСЂРµРЅРёСЏ */
+    }
+    .animate-gesture .blue-dot::after {
+      animation: tailGesture 4s ease-in-out 2;
+    }
+
+    @keyframes swipeGesture {
+      0% { left: 0%; }
+      15% { left: 50%; } /* РЈСЃРєРѕСЂРµРЅРЅРѕ РґРѕ СЃРµСЂРµРґРёРЅС‹ */
+      50% { left: 100%; } /* Р‘РµР· РєРѕРјРµС‚С‹ РґРѕ РєСЂР°СЏ */
+      65% { left: 50%; } /* РЈСЃРєРѕСЂРµРЅРЅРѕ РѕР±СЂР°С‚РЅРѕ РґРѕ СЃРµСЂРµРґРёРЅС‹ */
+      100% { left: 0%; } /* РћР±СЂР°С‚РЅРѕ РІ РЅР°С‡Р°Р»Рѕ */
+    }
+    @keyframes tailGesture {
+      0% { width: 0; opacity: 0; }
+      7% { width: 60px; opacity: 0.8; } /* Р Р°Р·РіРѕРЅ РІРїСЂР°РІРѕ */
+      15% { width: 0px; opacity: 0; }
+      50% { width: 0; opacity: 0; right: auto; left: 100%; background: linear-gradient(to right, #0a84ff, transparent); }
+      57% { width: 60px; opacity: 0.8; } /* Р Р°Р·РіРѕРЅ РІР»РµРІРѕ */
+      65% { width: 0px; opacity: 0; }
+      100% { width: 0; opacity: 0; right: 100%; left: auto; background: linear-gradient(to left, #0a84ff, transparent); }
+    }
+
+    /* --- РђР”РђРџРўРР’ Р”Р›РЇ РњРћР‘РР›РћРљ --- */
+    @media (max-width: 600px) {
+      .app-card { padding: 30px 20px; border-radius: 30px; }
+      .header-controls { flex-direction: row; margin-bottom: 30px; }
+      .year-label { font-size: 18px; width: 50px; }
+      /* Р’С‹С‡РёСЃР»СЏРµРј Р°РґР°РїС‚РёРІРЅС‹Р№ С†РµРЅС‚СЂ РґР»СЏ РјРµСЃСЏС†Р° СЃ СѓС‡РµС‚РѕРј Р±РѕРєРѕРІС‹С… Р±Р»РѕРєРѕРІ */
+      .month-title { font-size: 20px; position: static; transform: none; flex-grow: 1; text-align: center; }
+      .controls-group { width: auto; gap: 15px; }
+      .cell.day { aspect-ratio: 1/1; font-size: 15px; }
+      .cell.today { font-size: 20px; }
+      .cell.today::before { width: 40px; height: 40px; }
+      
+      /* РџРµСЂРµСЃС‚СЂРѕРµРЅРёРµ СЃРµС‚РѕРє РґР»СЏ РјРѕР±РёР»РѕРє */
+      .grid-months { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+      .cell.month { aspect-ratio: 1.5/1; font-size: 16px; }
+      .grid-years { grid-template-columns: repeat(3, 1fr); gap: 10px; } /* 3x5 */
+      .cell.year { aspect-ratio: 1.5/1; font-size: 16px; }
+    }
+  </style>
+</head>
+<body data-theme="dark">
+
+  <div class="onboarding-overlay" id="onboarding">
+    <div class="gesture-track">
+      <div class="blue-dot"></div>
+    </div>
+  </div>
+
+  <div class="app-card">
+    <div class="header-controls">
+      <div class="year-label" id="yearBtn" onclick="switchLayer('years')">2024</div>
+      <div class="month-title" id="monthBtn" onclick="switchLayer('months')">Март</div>
+      
+      <div class="controls-group">
+        <div class="theme-toggle" onclick="toggleTheme()">
+          <div class="toggle-knob"></div>
+        </div>
+        <div class="burger-menu">
+          <div class="burger-line"></div>
+          <div class="burger-line"></div>
+          <div class="burger-line"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view-container" id="viewContainer">
+      <div class="layer active" id="layer-days">
+        <div class="grid-header">
+          <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+        </div>
+        <div class="grid-days" id="grid-days"></div>
+      </div>
+
+      <div class="layer" id="layer-months">
+        <div class="grid-months" id="grid-months"></div>
+      </div>
+
+      <div class="layer" id="layer-years">
+        <div class="grid-years" id="grid-years"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const monthFormatter = new Intl.DateTimeFormat('ru-RU', { month: 'long' });
+    const today = new Date();
+    const state = {
+      currentView: 'days',
+      displayYear: today.getFullYear(),
+      displayMonth: today.getMonth(),
+      selectedDay: today.getDate(),
+    };
+    let isAnimating = false;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      checkOnboarding();
+      renderCurrent('itemPopIn');
+    });
+
+    function toggleTheme() {
+      const body = document.body;
+      body.setAttribute('data-theme', body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    }
+
+    function checkOnboarding() {
+      if (!localStorage.getItem('premiumCalendarOnboardingDone')) {
+        const overlay = document.getElementById('onboarding');
+        overlay.style.display = 'flex';
+        overlay.classList.add('animate-gesture');
+
+        setTimeout(() => {
+          overlay.style.opacity = '0';
+          setTimeout(() => (overlay.style.display = 'none'), 500);
+          localStorage.setItem('premiumCalendarOnboardingDone', 'true');
+        }, 8000);
+
+        overlay.addEventListener('click', () => {
+          overlay.style.display = 'none';
+          localStorage.setItem('premiumCalendarOnboardingDone', 'true');
+        });
+      }
+    }
+
+    function capitalize(value) {
+      return value.charAt(0).toUpperCase() + value.slice(1);
+    }
+
+    function getMonthName(monthIndex) {
+      return capitalize(monthFormatter.format(new Date(2020, monthIndex, 1)));
+    }
+
+    function getDaysInMonth(year, month) {
+      return new Date(year, month + 1, 0).getDate();
+    }
+
+    function getYearGridCount() {
+      return window.innerWidth <= 600 ? 15 : 35;
+    }
+
+    function syncHeader() {
+      document.getElementById('yearBtn').textContent = state.displayYear;
+      document.getElementById('monthBtn').textContent = getMonthName(state.displayMonth);
+    }
+
+    function renderCurrent(animName = 'itemPopIn') {
+      syncHeader();
+      if (state.currentView === 'days') renderDays(animName);
+      if (state.currentView === 'months') renderMonths(animName);
+      if (state.currentView === 'years') renderYears(animName);
+    }
+
+    function activateLayer(targetView, animName = 'itemPopIn') {
+      document.getElementById(`layer-${state.currentView}`).classList.remove('active');
+      document.getElementById(`layer-${targetView}`).classList.add('active');
+      state.currentView = targetView;
+      renderCurrent(animName);
+    }
+
+    function switchLayer(targetView) {
+      if (isAnimating || state.currentView === targetView) return;
+      isAnimating = true;
+      activateLayer(targetView, 'itemPopIn');
+      setTimeout(() => {
+        isAnimating = false;
+      }, 260);
+    }
+
+    function renderDays(animName) {
+      const grid = document.getElementById('grid-days');
+      grid.innerHTML = '';
+
+      const firstWeekDay = (new Date(state.displayYear, state.displayMonth, 1).getDay() + 6) % 7;
+      const daysInMonth = getDaysInMonth(state.displayYear, state.displayMonth);
+      const prevMonthDays = getDaysInMonth(state.displayYear, state.displayMonth - 1);
+      let html = '';
+
+      for (let i = 0; i < 42; i++) {
+        const dayNumber = i - firstWeekDay + 1;
+        let monthShift = 0;
+        let value = dayNumber;
+        if (dayNumber <= 0) {
+          monthShift = -1;
+          value = prevMonthDays + dayNumber;
+        } else if (dayNumber > daysInMonth) {
+          monthShift = 1;
+          value = dayNumber - daysInMonth;
+        }
+
+        const targetDate = new Date(state.displayYear, state.displayMonth + monthShift, value);
+        const isToday =
+          targetDate.getFullYear() === today.getFullYear() &&
+          targetDate.getMonth() === today.getMonth() &&
+          targetDate.getDate() === today.getDate();
+        const classes = ['cell', 'day'];
+        if (monthShift !== 0) classes.push('dimmed');
+        if (isToday) classes.push('today');
+
+        html += `<div class="${classes.join(' ')}" data-day="${value}" data-shift="${monthShift}">${value}</div>`;
+      }
+
+      grid.innerHTML = html;
+      grid.querySelectorAll('.cell.day').forEach((cell) => {
+        cell.addEventListener('click', () => {
+          const day = Number(cell.dataset.day);
+          const shift = Number(cell.dataset.shift);
+          const nextDate = new Date(state.displayYear, state.displayMonth + shift, day);
+          state.displayYear = nextDate.getFullYear();
+          state.displayMonth = nextDate.getMonth();
+          state.selectedDay = nextDate.getDate();
+          renderDays(shift === 0 ? 'itemPopIn' : shift > 0 ? 'slideNextIn' : 'slidePrevIn');
+          syncHeader();
+        });
+      });
+
+      applyStaggerAnimation(grid, animName);
+    }
+
+    function selectMonth(monthIndex) {
+      state.displayMonth = monthIndex;
+      state.selectedDay = Math.min(state.selectedDay, getDaysInMonth(state.displayYear, monthIndex));
+      activateLayer('days', 'itemPopIn');
+    }
+
+    function renderMonths(animName) {
+      const grid = document.getElementById('grid-months');
+      grid.innerHTML = '';
+
+      for (let i = 0; i < 12; i++) {
+        const num = String(i + 1).padStart(2, '0');
+        const classes = ['cell', 'month'];
+        if (state.displayYear === today.getFullYear() && i === today.getMonth()) classes.push('today');
+        grid.innerHTML += `<div class="${classes.join(' ')}" onclick="selectMonth(${i})">
+                             <span>${getMonthName(i)}</span>
+                             <span class="month-sub">${num}</span>
+                           </div>`;
+      }
+
+      applyStaggerAnimation(grid, animName);
+    }
+
+    function selectYear(year) {
+      state.displayYear = year;
+      state.selectedDay = Math.min(state.selectedDay, getDaysInMonth(state.displayYear, state.displayMonth));
+      activateLayer('months', 'itemPopIn');
+    }
+
+    function renderYears(animName) {
+      const grid = document.getElementById('grid-years');
+      grid.innerHTML = '';
+
+      const count = getYearGridCount();
+      const startYear = state.displayYear - Math.floor(count / 2);
+      for (let i = 0; i < count; i++) {
+        const year = startYear + i;
+        const classes = ['cell', 'year'];
+        if (year === today.getFullYear()) classes.push('today');
+        grid.innerHTML += `<div class="${classes.join(' ')}" onclick="selectYear(${year})">${year}</div>`;
+      }
+
+      applyStaggerAnimation(grid, animName);
+    }
+
+    function applyStaggerAnimation(grid, animName) {
+      const validAnimations = new Set(['itemPopIn', 'slideNextIn', 'slidePrevIn', 'itemFadeOut']);
+      const animation = validAnimations.has(animName) ? animName : 'itemPopIn';
+      const cells = grid.querySelectorAll('.cell');
+      cells.forEach((cell, i) => {
+        const delay = i * 15;
+        cell.style.animation = 'none';
+        cell.style.opacity = '0';
+        cell.offsetHeight;
+        cell.style.animation = `${animation} 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards ${delay}ms`;
+      });
+    }
+
+    function navigateContent(direction) {
+      if (isAnimating) return;
+      isAnimating = true;
+
+      const delta = direction === 'next' ? 1 : -1;
+      if (state.currentView === 'days') {
+        const nextMonth = new Date(state.displayYear, state.displayMonth + delta, 1);
+        state.displayYear = nextMonth.getFullYear();
+        state.displayMonth = nextMonth.getMonth();
+        state.selectedDay = Math.min(state.selectedDay, getDaysInMonth(state.displayYear, state.displayMonth));
+      } else if (state.currentView === 'months') {
+        state.displayYear += delta;
+      } else if (state.currentView === 'years') {
+        state.displayYear += delta * getYearGridCount();
+      }
+
+      renderCurrent(delta > 0 ? 'slideNextIn' : 'slidePrevIn');
+      setTimeout(() => {
+        isAnimating = false;
+      }, 360);
+    }
+
+    const viewContainer = document.getElementById('viewContainer');
+    viewContainer.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaY) > 30) {
+        navigateContent(e.deltaY > 0 ? 'next' : 'prev');
+      }
+    }, { passive: true });
+
+    let touchStartX = 0;
+    viewContainer.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    viewContainer.addEventListener('touchend', (e) => {
+      const touchEndX = e.changedTouches[0].screenX;
+      const diff = touchStartX - touchEndX;
+      if (diff > 50) navigateContent('next');
+      if (diff < -50) navigateContent('prev');
+    }, { passive: true });
+
+    window.addEventListener('resize', () => {
+      if (state.currentView === 'years') renderYears('itemPopIn');
+    });
+  </script>
+</body>
+</html>
+
+
