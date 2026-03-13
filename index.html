@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
@@ -15,6 +15,7 @@
       --glass-border: rgba(255, 255, 255, 0.08);
       --shadow: 0 40px 80px rgba(0,0,0,0.5);
       --mask-gradient: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+      --dimmed-text: rgba(255, 255, 255, 0.22);
     }
 
     [data-theme="light"] {
@@ -24,6 +25,7 @@
       --muted: #8e8e93;
       --glass-border: rgba(255, 255, 255, 0.5);
       --shadow: 0 20px 50px rgba(0,0,0,0.05);
+      --dimmed-text: rgba(31, 41, 55, 0.26);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; touch-action: pan-y; }
@@ -34,7 +36,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
+      min-height: 100dvh;
       color: var(--text);
       transition: background 0.5s ease;
       overflow: hidden;
@@ -121,7 +123,7 @@
     .view-container {
       position: relative;
       width: 100%;
-      min-height: 400px;
+      min-height: clamp(300px, 62vh, 520px);
       overflow: hidden;
     }
 
@@ -143,7 +145,7 @@
 
     /* --- РЎР•РўРљР --- */
     .grid-header {
-      display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 15px;
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 15px; margin-bottom: 15px;
     }
     .grid-header span {
       font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--muted); text-align: center; letter-spacing: 2px;
@@ -161,12 +163,29 @@
       transition: background 0.3s, transform 0.2s;
       opacity: 1;
     }
-    .cell.day { aspect-ratio: 1.2 / 1; font-size: 18px; }
-    .cell.month { aspect-ratio: 2 / 1; font-size: 20px; flex-direction: column; gap: 4px; }
-    .cell.year { aspect-ratio: 1.5 / 1; font-size: 18px; }
+    .cell.day {
+      width: 100%;
+      height: clamp(40px, 8vh, 68px);
+      font-size: clamp(15px, 2.1vh, 18px);
+      line-height: 1;
+    }
+    .cell.month {
+      width: 100%;
+      height: clamp(60px, 14vh, 96px);
+      font-size: clamp(17px, 2.6vh, 20px);
+      flex-direction: column;
+      gap: 4px;
+      line-height: 1.1;
+    }
+    .cell.year {
+      width: 100%;
+      height: clamp(38px, 9vh, 72px);
+      font-size: clamp(15px, 2.2vh, 18px);
+      line-height: 1;
+    }
     
     .cell:hover:not(.dimmed) { background: rgba(128,128,128,0.08); }
-    .cell.dimmed { opacity: 0.2 !important; cursor: default; }
+    .cell.dimmed { color: var(--dimmed-text); cursor: default; pointer-events: none; }
 
     /* РџРѕРґРїРёСЃСЊ РЅРѕРјРµСЂР° РјРµСЃСЏС†Р° (01, 02...) */
     .month-sub { font-size: 12px; color: var(--muted); font-weight: 600; }
@@ -191,8 +210,30 @@
     }
     
     /* РЎРґРІРёРі РІР»РµРІРѕ/РІРїСЂР°РІРѕ РїСЂРё РїРµСЂРµР»РёСЃС‚С‹РІР°РЅРёРё РєРѕР»РµСЃРѕРј/СЃРІР°Р№РїРѕРј */
-    @keyframes slideNextIn { 0% { opacity: 0; transform: translateX(50px); } 100% { opacity: 1; transform: translateX(0); } }
-    @keyframes slidePrevIn { 0% { opacity: 0; transform: translateX(-50px); } 100% { opacity: 1; transform: translateX(0); } }
+    @keyframes slideNextIn {
+      0% { opacity: 0; transform: translateX(50px); }
+      60% { opacity: 0.85; }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes slidePrevIn {
+      0% { opacity: 0; transform: translateX(-50px); }
+      60% { opacity: 0.85; }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes slideNextOut {
+      0% { opacity: 1; transform: translateX(0); }
+      40% { opacity: 0.85; }
+      100% { opacity: 0; transform: translateX(-50px); }
+    }
+    @keyframes slidePrevOut {
+      0% { opacity: 1; transform: translateX(0); }
+      40% { opacity: 0.85; }
+      100% { opacity: 0; transform: translateX(50px); }
+    }
+    @keyframes headerNextOut { 0% { opacity: 1; translate: 0 0; } 100% { opacity: 0; translate: -18px 0; } }
+    @keyframes headerPrevOut { 0% { opacity: 1; translate: 0 0; } 100% { opacity: 0; translate: 18px 0; } }
+    @keyframes headerNextIn { 0% { opacity: 0; translate: 18px 0; } 100% { opacity: 1; translate: 0 0; } }
+    @keyframes headerPrevIn { 0% { opacity: 0; translate: -18px 0; } 100% { opacity: 1; translate: 0 0; } }
 
     /* --- РћРќР‘РћР Р”РРќР“ (РЎРРќРР™ РџРђР›Р•Р¦/РўРћР§РљРђ) --- */
     .onboarding-overlay {
@@ -242,21 +283,48 @@
 
     /* --- РђР”РђРџРўРР’ Р”Р›РЇ РњРћР‘РР›РћРљ --- */
     @media (max-width: 600px) {
-      .app-card { padding: 30px 20px; border-radius: 30px; }
-      .header-controls { flex-direction: row; margin-bottom: 30px; }
-      .year-label { font-size: 18px; width: 50px; }
+      .app-card { padding: 22px 14px; border-radius: 30px; }
+      .header-controls { flex-direction: row; margin-bottom: 18px; }
+      .year-label { font-size: 18px; width: 72px; }
+      .view-container { min-height: clamp(320px, 92vw, 430px); }
       /* Р’С‹С‡РёСЃР»СЏРµРј Р°РґР°РїС‚РёРІРЅС‹Р№ С†РµРЅС‚СЂ РґР»СЏ РјРµСЃСЏС†Р° СЃ СѓС‡РµС‚РѕРј Р±РѕРєРѕРІС‹С… Р±Р»РѕРєРѕРІ */
       .month-title { font-size: 20px; position: static; transform: none; flex-grow: 1; text-align: center; }
-      .controls-group { width: auto; gap: 15px; }
-      .cell.day { aspect-ratio: 1/1; font-size: 15px; }
+      .controls-group { width: auto; gap: 12px; }
+      .grid-header { gap: 8px; margin-bottom: 10px; }
+      .grid-header span { font-size: 10px; letter-spacing: 1.5px; }
+      .grid-days { gap: 8px; }
+      .cell.day {
+        width: 100%;
+        height: clamp(34px, 6.8vh, 46px);
+        font-size: clamp(14px, 2.2vh, 16px);
+      }
       .cell.today { font-size: 20px; }
       .cell.today::before { width: 40px; height: 40px; }
       
       /* РџРµСЂРµСЃС‚СЂРѕРµРЅРёРµ СЃРµС‚РѕРє РґР»СЏ РјРѕР±РёР»РѕРє */
-      .grid-months { grid-template-columns: repeat(3, 1fr); gap: 10px; }
-      .cell.month { aspect-ratio: 1.5/1; font-size: 16px; }
-      .grid-years { grid-template-columns: repeat(3, 1fr); gap: 10px; } /* 3x5 */
-      .cell.year { aspect-ratio: 1.5/1; font-size: 16px; }
+      .grid-months { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .cell.month {
+        width: 100%;
+        height: clamp(52px, 10vh, 68px);
+        font-size: clamp(15px, 2.4vh, 17px);
+      }
+      .grid-years { grid-template-columns: repeat(3, 1fr); gap: 8px; } /* 3x5 */
+      .cell.year {
+        width: 100%;
+        height: clamp(34px, 7.8vh, 50px);
+        font-size: clamp(14px, 2.2vh, 16px);
+      }
+    }
+
+    @media (max-height: 620px) {
+      body {
+        align-items: flex-start;
+        overflow-y: auto;
+        padding: 8px 0;
+      }
+      .view-container {
+        min-height: clamp(260px, 56dvh, 420px);
+      }
     }
   </style>
 </head>
@@ -387,14 +455,11 @@
       }, 260);
     }
 
-    function renderDays(animName) {
-      const grid = document.getElementById('grid-days');
-      grid.innerHTML = '';
-
-      const firstWeekDay = (new Date(state.displayYear, state.displayMonth, 1).getDay() + 6) % 7;
-      const daysInMonth = getDaysInMonth(state.displayYear, state.displayMonth);
-      const prevMonthDays = getDaysInMonth(state.displayYear, state.displayMonth - 1);
-      let html = '';
+    function getDayCellsData(year, month) {
+      const firstWeekDay = (new Date(year, month, 1).getDay() + 6) % 7;
+      const daysInMonth = getDaysInMonth(year, month);
+      const prevMonthDays = getDaysInMonth(year, month - 1);
+      const cells = [];
 
       for (let i = 0; i < 42; i++) {
         const dayNumber = i - firstWeekDay + 1;
@@ -408,7 +473,7 @@
           value = dayNumber - daysInMonth;
         }
 
-        const targetDate = new Date(state.displayYear, state.displayMonth + monthShift, value);
+        const targetDate = new Date(year, month + monthShift, value);
         const isToday =
           targetDate.getFullYear() === today.getFullYear() &&
           targetDate.getMonth() === today.getMonth() &&
@@ -416,69 +481,142 @@
         const classes = ['cell', 'day'];
         if (monthShift !== 0) classes.push('dimmed');
         if (isToday) classes.push('today');
-
-        html += `<div class="${classes.join(' ')}" data-day="${value}" data-shift="${monthShift}">${value}</div>`;
+        cells.push({ value, monthShift, className: classes.join(' ') });
       }
 
-      grid.innerHTML = html;
-      grid.querySelectorAll('.cell.day').forEach((cell) => {
-        cell.addEventListener('click', () => {
-          const day = Number(cell.dataset.day);
-          const shift = Number(cell.dataset.shift);
-          const nextDate = new Date(state.displayYear, state.displayMonth + shift, day);
-          state.displayYear = nextDate.getFullYear();
-          state.displayMonth = nextDate.getMonth();
-          state.selectedDay = nextDate.getDate();
-          renderDays(shift === 0 ? 'itemPopIn' : shift > 0 ? 'slideNextIn' : 'slidePrevIn');
-          syncHeader();
-        });
-      });
-
-      applyStaggerAnimation(grid, animName);
+      return cells;
     }
 
-    function selectMonth(monthIndex) {
-      state.displayMonth = monthIndex;
-      state.selectedDay = Math.min(state.selectedDay, getDaysInMonth(state.displayYear, monthIndex));
-      activateLayer('days', 'itemPopIn');
-    }
-
-    function renderMonths(animName) {
-      const grid = document.getElementById('grid-months');
-      grid.innerHTML = '';
-
+    function getMonthCellsData(year) {
+      const cells = [];
       for (let i = 0; i < 12; i++) {
         const num = String(i + 1).padStart(2, '0');
         const classes = ['cell', 'month'];
-        if (state.displayYear === today.getFullYear() && i === today.getMonth()) classes.push('today');
-        grid.innerHTML += `<div class="${classes.join(' ')}" onclick="selectMonth(${i})">
-                             <span>${getMonthName(i)}</span>
-                             <span class="month-sub">${num}</span>
-                           </div>`;
+        if (year === today.getFullYear() && i === today.getMonth()) classes.push('today');
+        cells.push({
+          monthIndex: i,
+          className: classes.join(' '),
+          label: getMonthName(i),
+          sub: num,
+        });
       }
-
-      applyStaggerAnimation(grid, animName);
+      return cells;
     }
 
-    function selectYear(year) {
-      state.displayYear = year;
-      state.selectedDay = Math.min(state.selectedDay, getDaysInMonth(state.displayYear, state.displayMonth));
-      activateLayer('months', 'itemPopIn');
-    }
-
-    function renderYears(animName) {
-      const grid = document.getElementById('grid-years');
-      grid.innerHTML = '';
-
+    function getYearCellsData(centerYear) {
+      const cells = [];
       const count = getYearGridCount();
-      const startYear = state.displayYear - Math.floor(count / 2);
+      const startYear = centerYear - Math.floor(count / 2);
       for (let i = 0; i < count; i++) {
         const year = startYear + i;
         const classes = ['cell', 'year'];
         if (year === today.getFullYear()) classes.push('today');
-        grid.innerHTML += `<div class="${classes.join(' ')}" onclick="selectYear(${year})">${year}</div>`;
+        cells.push({ year, className: classes.join(' ') });
+      }
+      return cells;
+    }
+
+    function bindDayCellClicks(grid) {
+      grid.querySelectorAll('.cell.day').forEach((cell) => {
+        cell.onclick = () => {
+          const day = Number(cell.dataset.day);
+          state.selectedDay = day;
+        };
+      });
+    }
+
+    function bindMonthCellClicks(grid) {
+      grid.querySelectorAll('.cell.month').forEach((cell) => {
+        cell.onclick = () => selectMonth(Number(cell.dataset.month));
+      });
+    }
+
+    function bindYearCellClicks(grid) {
+      grid.querySelectorAll('.cell.year').forEach((cell) => {
+        cell.onclick = () => selectYear(Number(cell.dataset.year));
+      });
+    }
+
+    function renderDays(animName) {
+      const grid = document.getElementById('grid-days');
+      const cellsData = getDayCellsData(state.displayYear, state.displayMonth);
+      grid.innerHTML = cellsData
+        .map((item) => `<div class="${item.className}" data-day="${item.value}" data-shift="${item.monthShift}">${item.value}</div>`)
+        .join('');
+
+      bindDayCellClicks(grid);
+      applyStaggerAnimation(grid, animName);
+    }
+
+    function selectMonth(monthIndex) {
+      if (isAnimating) return;
+      const prevMonth = state.displayMonth;
+      const monthChanged = monthIndex !== prevMonth;
+      const direction = monthIndex > prevMonth ? 'next' : 'prev';
+      const changes = { yearChanged: false, monthChanged };
+
+      if (!monthChanged) {
+        activateLayer('days', 'itemPopIn');
+        return;
       }
 
+      isAnimating = true;
+      animateHeader(direction, 'out', changes);
+      setTimeout(() => {
+        state.displayMonth = monthIndex;
+        state.selectedDay = Math.min(state.selectedDay, getDaysInMonth(state.displayYear, monthIndex));
+        activateLayer('days', 'itemPopIn');
+        animateHeader(direction, 'in', changes);
+        setTimeout(() => {
+          isAnimating = false;
+        }, 300);
+      }, 220);
+    }
+
+    function renderMonths(animName) {
+      const grid = document.getElementById('grid-months');
+      const cellsData = getMonthCellsData(state.displayYear);
+      grid.innerHTML = cellsData
+        .map((item) => `<div class="${item.className}" data-month="${item.monthIndex}"><span>${item.label}</span><span class="month-sub">${item.sub}</span></div>`)
+        .join('');
+
+      bindMonthCellClicks(grid);
+      applyStaggerAnimation(grid, animName);
+    }
+
+    function selectYear(year) {
+      if (isAnimating) return;
+      const prevYear = state.displayYear;
+      const yearChanged = year !== prevYear;
+      const direction = year > prevYear ? 'next' : 'prev';
+      const changes = { yearChanged, monthChanged: false };
+
+      if (!yearChanged) {
+        activateLayer('months', 'itemPopIn');
+        return;
+      }
+
+      isAnimating = true;
+      animateHeader(direction, 'out', changes);
+      setTimeout(() => {
+        state.displayYear = year;
+        state.selectedDay = Math.min(state.selectedDay, getDaysInMonth(state.displayYear, state.displayMonth));
+        activateLayer('months', 'itemPopIn');
+        animateHeader(direction, 'in', changes);
+        setTimeout(() => {
+          isAnimating = false;
+        }, 300);
+      }, 220);
+    }
+
+    function renderYears(animName) {
+      const grid = document.getElementById('grid-years');
+      const cellsData = getYearCellsData(state.displayYear);
+      grid.innerHTML = cellsData
+        .map((item) => `<div class="${item.className}" data-year="${item.year}">${item.year}</div>`)
+        .join('');
+
+      bindYearCellClicks(grid);
       applyStaggerAnimation(grid, animName);
     }
 
@@ -489,9 +627,48 @@
       cells.forEach((cell, i) => {
         const delay = i * 15;
         cell.style.animation = 'none';
-        cell.style.opacity = '0';
         cell.offsetHeight;
-        cell.style.animation = `${animation} 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards ${delay}ms`;
+        cell.style.animation = `${animation} 0.5s cubic-bezier(0.16, 1, 0.3, 1) both ${delay}ms`;
+      });
+    }
+
+    function getActiveGrid() {
+      const activeLayer = document.getElementById(`layer-${state.currentView}`);
+      if (!activeLayer) return null;
+      return activeLayer.querySelector('.grid-days, .grid-months, .grid-years');
+    }
+
+    function animateCurrentGridOut(direction) {
+      const grid = getActiveGrid();
+      if (!grid) return 0;
+      const cells = grid.querySelectorAll('.cell');
+      const duration = 320;
+      const step = 15;
+      const outAnimation = direction === 'next' ? 'slideNextOut' : 'slidePrevOut';
+      cells.forEach((cell, i) => {
+        cell.style.animation = 'none';
+        cell.offsetHeight;
+        cell.style.animation = `${outAnimation} ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) both ${i * step}ms`;
+      });
+      return duration + Math.max(0, cells.length - 1) * step;
+    }
+
+    function animateHeader(direction, phase, changes) {
+      const targets = [];
+      if (changes.yearChanged) targets.push(document.getElementById('yearBtn'));
+      if (changes.monthChanged) targets.push(document.getElementById('monthBtn'));
+      if (!targets.length) return;
+
+      const isNext = direction === 'next';
+      const animName = phase === 'out'
+        ? (isNext ? 'headerNextOut' : 'headerPrevOut')
+        : (isNext ? 'headerNextIn' : 'headerPrevIn');
+
+      targets.forEach((el) => {
+        if (!el) return;
+        el.style.animation = 'none';
+        el.offsetHeight;
+        el.style.animation = `${animName} 260ms cubic-bezier(0.16, 1, 0.3, 1) both`;
       });
     }
 
@@ -500,21 +677,129 @@
       isAnimating = true;
 
       const delta = direction === 'next' ? 1 : -1;
+      const prevYear = state.displayYear;
+      const prevMonth = state.displayMonth;
+      let nextYear = prevYear;
+      let nextMonth = prevMonth;
+      let nextSelectedDay = state.selectedDay;
+
       if (state.currentView === 'days') {
-        const nextMonth = new Date(state.displayYear, state.displayMonth + delta, 1);
-        state.displayYear = nextMonth.getFullYear();
-        state.displayMonth = nextMonth.getMonth();
-        state.selectedDay = Math.min(state.selectedDay, getDaysInMonth(state.displayYear, state.displayMonth));
+        const nextMonthDate = new Date(prevYear, prevMonth + delta, 1);
+        nextYear = nextMonthDate.getFullYear();
+        nextMonth = nextMonthDate.getMonth();
+        nextSelectedDay = Math.min(state.selectedDay, getDaysInMonth(nextYear, nextMonth));
       } else if (state.currentView === 'months') {
-        state.displayYear += delta;
+        nextYear = prevYear + delta;
       } else if (state.currentView === 'years') {
-        state.displayYear += delta * getYearGridCount();
+        nextYear = prevYear + delta * getYearGridCount();
       }
 
-      renderCurrent(delta > 0 ? 'slideNextIn' : 'slidePrevIn');
+      const changes = {
+        yearChanged: nextYear !== prevYear,
+        monthChanged: nextMonth !== prevMonth,
+      };
+
+      if (state.currentView === 'days' || state.currentView === 'months' || state.currentView === 'years') {
+        transitionGridByRows(state.currentView, direction, nextYear, nextMonth, nextSelectedDay, changes);
+        return;
+      }
+
+      animateHeader(direction, 'out', changes);
+      const outDuration = animateCurrentGridOut(direction);
       setTimeout(() => {
+        state.displayYear = nextYear;
+        state.displayMonth = nextMonth;
+        state.selectedDay = nextSelectedDay;
+
+        renderCurrent(delta > 0 ? 'slideNextIn' : 'slidePrevIn');
+        animateHeader(direction, 'in', changes);
+        setTimeout(() => {
+          isAnimating = false;
+        }, 360);
+      }, outDuration);
+    }
+
+    function transitionGridByRows(view, direction, nextYear, nextMonth, nextSelectedDay, changes) {
+      const gridId = view === 'days' ? 'grid-days' : view === 'months' ? 'grid-months' : 'grid-years';
+      const className = view === 'days' ? '.cell.day' : view === 'months' ? '.cell.month' : '.cell.year';
+      const cols = view === 'days' ? 7 : window.innerWidth <= 600 ? 3 : view === 'months' ? 4 : 7;
+      const expectedCount = view === 'days' ? 42 : view === 'months' ? 12 : getYearGridCount();
+      const grid = document.getElementById(gridId);
+      const currentCells = Array.from(grid.querySelectorAll(className));
+      if (currentCells.length !== expectedCount) {
+        state.displayYear = nextYear;
+        state.displayMonth = nextMonth;
+        state.selectedDay = nextSelectedDay;
+        renderCurrent(direction === 'next' ? 'slideNextIn' : 'slidePrevIn');
+        animateHeader(direction, 'in', changes);
         isAnimating = false;
-      }, 360);
+        return;
+      }
+
+      const nextCellsData = view === 'days'
+        ? getDayCellsData(nextYear, nextMonth)
+        : view === 'months'
+          ? getMonthCellsData(nextYear)
+          : getYearCellsData(nextYear);
+      const outAnimation = direction === 'next' ? 'slideNextOut' : 'slidePrevOut';
+      const inAnimation = direction === 'next' ? 'slideNextIn' : 'slidePrevIn';
+      const rowCount = Math.ceil(expectedCount / cols);
+      const rowDuration = 300;
+      const inDuration = 300;
+      const rowStep = 120;
+      const cellStep = 15;
+
+      animateHeader(direction, 'out', changes);
+
+      setTimeout(() => {
+        state.displayYear = nextYear;
+        state.displayMonth = nextMonth;
+        state.selectedDay = nextSelectedDay;
+        syncHeader();
+        animateHeader(direction, 'in', changes);
+      }, rowDuration);
+
+      for (let row = 0; row < rowCount; row++) {
+        const rowStart = row * cols;
+        const rowCells = currentCells.slice(rowStart, rowStart + cols);
+
+        setTimeout(() => {
+          rowCells.forEach((cell, col) => {
+            cell.style.animation = 'none';
+            cell.offsetHeight;
+            cell.style.animation = `${outAnimation} ${rowDuration}ms cubic-bezier(0.16, 1, 0.3, 1) both ${col * cellStep}ms`;
+            // Start "in" immediately after this cell's own "out" ends.
+            setTimeout(() => {
+              const nextCell = nextCellsData[rowStart + col];
+              if (!nextCell) return;
+              cell.className = nextCell.className;
+              if (view === 'days') {
+                cell.dataset.day = String(nextCell.value);
+                cell.dataset.shift = String(nextCell.monthShift);
+                cell.textContent = String(nextCell.value);
+              } else if (view === 'months') {
+                cell.dataset.month = String(nextCell.monthIndex);
+                cell.innerHTML = `<span>${nextCell.label}</span><span class="month-sub">${nextCell.sub}</span>`;
+              } else {
+                cell.dataset.year = String(nextCell.year);
+                cell.textContent = String(nextCell.year);
+              }
+              cell.style.animation = 'none';
+              cell.offsetHeight;
+              cell.style.animation = `${inAnimation} ${inDuration}ms cubic-bezier(0.16, 1, 0.3, 1) both`;
+            }, rowDuration + col * cellStep);
+          });
+        }, row * rowStep);
+      }
+
+      const rowTail = rowDuration + (cols - 1) * cellStep + inDuration;
+      const totalDuration = (rowCount - 1) * rowStep + rowTail + 80;
+      setTimeout(() => {
+        if (view === 'days') bindDayCellClicks(grid);
+        if (view === 'months') bindMonthCellClicks(grid);
+        if (view === 'years') bindYearCellClicks(grid);
+        isAnimating = false;
+      }, totalDuration);
     }
 
     const viewContainer = document.getElementById('viewContainer');
