@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
@@ -12,10 +12,17 @@
       --text: #ffffff;
       --muted: #52525b;
       --accent: #8b5cf6;
+      --current-color: #8b5cf6;
+      --weekend-color: #ff5f8a;
+      --workday-color: #ffffff;
       --glass-border: rgba(255, 255, 255, 0.08);
       --shadow: 0 40px 80px rgba(0,0,0,0.5);
       --mask-gradient: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
       --dimmed-text: rgba(255, 255, 255, 0.22);
+      --day-cell-h: clamp(40px, 8vh, 68px);
+      --day-gap: 15px;
+      --dow-zone: 38px;
+      --rain-color: rgba(255, 255, 255, 0.2);
     }
 
     [data-theme="light"] {
@@ -26,6 +33,7 @@
       --glass-border: rgba(255, 255, 255, 0.5);
       --shadow: 0 20px 50px rgba(0,0,0,0.05);
       --dimmed-text: rgba(31, 41, 55, 0.26);
+      --rain-color: rgba(31, 41, 55, 0.18);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; touch-action: pan-y; }
@@ -40,6 +48,132 @@
       color: var(--text);
       transition: background 0.5s ease;
       overflow: hidden;
+    }
+
+    body.anim-none *,
+    body.anim-none *::before,
+    body.anim-none *::after {
+      animation: none !important;
+      transition-duration: 0ms !important;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+      background-size: 64px 64px;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      inset: -20% 0 0 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0;
+      background-repeat: repeat;
+      transform: translateY(-20%);
+    }
+    body[data-bg='none']::before {
+      opacity: 0;
+      background-image: none;
+    }
+    body[data-bg='bubbles']::before {
+      opacity: 0.18;
+      background-image:
+        radial-gradient(circle at 12% 18%, rgba(255,255,255,0.18) 0 8px, transparent 10px),
+        radial-gradient(circle at 68% 28%, rgba(255,255,255,0.12) 0 12px, transparent 14px),
+        radial-gradient(circle at 34% 72%, rgba(255,255,255,0.15) 0 7px, transparent 9px),
+        radial-gradient(circle at 82% 76%, rgba(255,255,255,0.1) 0 10px, transparent 12px);
+      background-size: 160px 160px;
+    }
+    body[data-bg='honeycomb']::before {
+      opacity: 0.16;
+      background-image:
+        linear-gradient(30deg, rgba(255,255,255,0.08) 12%, transparent 12.5%, transparent 87%, rgba(255,255,255,0.08) 87.5%, rgba(255,255,255,0.08)),
+        linear-gradient(150deg, rgba(255,255,255,0.08) 12%, transparent 12.5%, transparent 87%, rgba(255,255,255,0.08) 87.5%, rgba(255,255,255,0.08)),
+        linear-gradient(90deg, rgba(255,255,255,0.05) 2%, transparent 2.5%, transparent 97%, rgba(255,255,255,0.05) 97.5%, rgba(255,255,255,0.05));
+      background-size: 52px 90px;
+      background-position: 0 0, 0 0, 26px 45px;
+    }
+    body[data-bg='grid']::before {
+      opacity: 0.15;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    body[data-bg='dots']::before {
+      opacity: 0.2;
+      background-image: radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1px);
+      background-size: 18px 18px;
+    }
+    body[data-bg='hatch']::before {
+      opacity: 0.14;
+      background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.11), rgba(255,255,255,0.11) 1px, transparent 1px, transparent 9px);
+      background-size: 18px 18px;
+    }
+    body[data-bg='circuit']::before {
+      opacity: 0.18;
+      background-image:
+        radial-gradient(circle at 12px 12px, rgba(255,255,255,0.2) 0 2px, transparent 2.5px),
+        radial-gradient(circle at 44px 44px, rgba(255,255,255,0.16) 0 2px, transparent 2.5px),
+        linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
+      background-size: 56px 56px, 56px 56px, 28px 28px, 28px 28px;
+      background-position: 0 0, 14px 14px, 0 0, 0 0;
+    }
+    body[data-bg='rain']::before {
+      opacity: 0.08;
+      background-image: linear-gradient(rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      background-size: 100% 100%;
+    }
+    body[data-bg='rain']::after {
+      opacity: 0.45;
+      background-image: repeating-linear-gradient(
+        100deg,
+        transparent 0 10px,
+        var(--rain-color) 10px 12px,
+        transparent 12px 28px
+      );
+      background-size: 220px 160px;
+      animation: rainFall 1.4s linear infinite;
+    }
+
+    .custom-bg-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+      overflow: hidden;
+    }
+    .custom-bg-layer.on { opacity: 1; }
+    .custom-bg-media {
+      position: absolute;
+      inset: 0;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      transform-origin: center;
+    }
+    .custom-bg-media > img,
+    .custom-bg-media > video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform-origin: center;
+      pointer-events: none;
+    }
+    .custom-bg-overlay {
+      position: absolute;
+      inset: 0;
+      background: #000;
+      opacity: 0.25;
     }
 
     .app-card {
@@ -60,6 +194,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      min-height: 34px;
       margin-bottom: 50px;
       position: relative;
     }
@@ -70,6 +205,10 @@
       color: var(--muted);
       cursor: pointer;
       width: 120px;
+      min-height: 34px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
       transition: color 0.3s;
     }
     .year-label:hover { color: var(--text); }
@@ -115,15 +254,27 @@
     .burger-menu {
       display: flex; flex-direction: column; gap: 5px;
       cursor: pointer; flex-shrink: 0;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
     }
-    .burger-line { width: 22px; height: 2px; background: var(--text); border-radius: 2px; transition: 0.3s; }
-    .burger-menu:hover .burger-line:nth-child(2) { transform: translateX(4px); }
+    .burger-menu:focus,
+    .burger-menu:focus-visible { outline: none; box-shadow: none; }
+    .burger-line {
+      width: 22px; height: 2px; background: var(--text); border-radius: 2px;
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .burger-menu:hover .burger-line:nth-child(2) { transform: translateX(4px); }
+    }
+    .burger-menu.open .burger-line:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .burger-menu.open .burger-line:nth-child(2) { opacity: 0; transform: translateX(-8px); }
+    .burger-menu.open .burger-line:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
     /* --- РљРћРќРўР•Р™РќР•Р  РЎР›РћР•Р’ РЎ Р РђРЎРўР’РћР Р•РќРР•Рњ РљР РђР•Р’ --- */
     .view-container {
       position: relative;
       width: 100%;
-      min-height: clamp(300px, 62vh, 520px);
+      height: calc(var(--day-cell-h) * 6 + var(--day-gap) * 5 + var(--dow-zone));
       overflow: hidden;
     }
 
@@ -134,13 +285,13 @@
       display: flex; flex-direction: column;
       opacity: 0;
       pointer-events: none;
-      transform: scale(0.9);
-      transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: none;
+      transition: opacity 0.35s ease;
     }
     .layer.active {
       opacity: 1;
       pointer-events: auto;
-      transform: scale(1);
+      transform: none;
     }
 
     /* --- РЎР•РўРљР --- */
@@ -151,9 +302,317 @@
       font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--muted); text-align: center; letter-spacing: 2px;
     }
 
-    .grid-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 15px; }
+    .grid-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--day-gap); }
     .grid-months { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; height: 100%; align-content: center; }
     .grid-years { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; height: 100%; align-content: center; }
+    #layer-settings { transition: opacity 0.35s ease; }
+    #settingsContent { height: 100%; }
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      align-content: start;
+      height: 100%;
+      overflow: hidden;
+    }
+    .settings-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 16px;
+      cursor: pointer;
+      position: relative;
+      color: var(--text);
+      font-weight: 400;
+      transition: background 0.3s, transform 0.2s;
+      background: transparent;
+      border: 0;
+      width: 100%;
+      min-height: clamp(60px, 14vh, 96px);
+      height: clamp(60px, 14vh, 96px);
+      padding: 8px 10px;
+      flex-direction: column;
+      text-align: center;
+      gap: 4px;
+      user-select: none;
+    }
+    .settings-item:hover { background: rgba(128,128,128,0.08); }
+    .settings-item.on {
+      color: var(--current-color);
+    }
+    .settings-item.on::before {
+      content: '';
+      position: absolute;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+      opacity: 0.3;
+      z-index: 0;
+      animation: pulse 3s infinite ease-in-out;
+    }
+    .settings-item > * { position: relative; z-index: 1; }
+    .settings-item-title {
+      font-size: clamp(15px, 2.1vh, 18px);
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1;
+    }
+    .settings-item-value {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      line-height: 1;
+    }
+    .settings-subview {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      align-content: start;
+      height: 100%;
+      overflow-y: auto;
+      scrollbar-gutter: stable both-edges;
+      padding-right: 2px;
+    }
+    .settings-subview.matrix-center {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      align-content: flex-start;
+      overflow-y: auto;
+      padding-right: 0;
+      padding-top: 0;
+    }
+    .settings-subview.matrix-center .settings-sec {
+      width: min(980px, 100%);
+      height: auto;
+    }
+    .settings-sec {
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .settings-sec-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.8px; color: var(--muted); }
+    .chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .chips.matrix-3x3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      width: 100%;
+    }
+    .chip {
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 16px; cursor: pointer; position: relative;
+      color: var(--text); font-weight: 400;
+      transition: background 0.3s, transform 0.2s;
+      border: 0;
+      min-height: clamp(60px, 14vh, 96px);
+      padding: 8px 10px;
+      font-size: clamp(15px, 2.1vh, 18px);
+      font-weight: 600;
+      background: transparent;
+      user-select: none;
+      text-align: center;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .chip:hover { background: rgba(128,128,128,0.08); }
+    .chip.on {
+      font-size: clamp(15px, 2.1vh, 18px);
+      font-weight: 700;
+      color: var(--current-color);
+    }
+    .chip.on::before {
+      content: '';
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+      opacity: 0.35;
+      z-index: 0;
+      animation: pulse 3s infinite ease-in-out;
+    }
+    .chip > * { position: relative; z-index: 1; }
+    .color-chip {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 1px solid color-mix(in srgb, var(--text) 20%, transparent);
+      cursor: pointer;
+      justify-self: center;
+    }
+    .color-chip.on { border-color: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,0.35) inset; }
+    .color-chip-card {
+      min-height: clamp(60px, 14vh, 96px);
+      height: clamp(60px, 14vh, 96px);
+      cursor: pointer;
+    }
+    .color-chip-dot {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 1px solid color-mix(in srgb, var(--text) 24%, transparent);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.18);
+    }
+    .color-chip-card.on .color-chip-dot {
+      border-color: #fff;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.28),
+        inset 0 0 0 1px rgba(0,0,0,0.24);
+    }
+    .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .setting-row label { font-size: 13px; color: var(--text); opacity: 0.9; }
+    .setting-row input[type='range'] { width: 150px; }
+    .setting-row select {
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--glass-border);
+      background: rgba(128,128,128,0.08);
+      color: var(--text);
+    }
+    .file-input {
+      width: 100%;
+      border: 1px dashed var(--glass-border);
+      border-radius: 12px;
+      padding: 10px;
+      background: rgba(128,128,128,0.04);
+      color: var(--text);
+    }
+    .chip-label {
+      font-size: clamp(15px, 2.1vh, 18px);
+      color: var(--text);
+      line-height: 1;
+      font-weight: 600;
+    }
+    .chip-sub {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      line-height: 1;
+    }
+    .settings-anim-cell { opacity: 1; }
+    .settings-single-mobile { grid-template-columns: repeat(3, 1fr); }
+    .chips.palette-9 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      width: 100%;
+    }
+    .shift-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .shift-grid.matrix-3x3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      width: 100%;
+    }
+    .matrix-placeholder {
+      visibility: hidden;
+      pointer-events: none;
+      min-height: clamp(60px, 14vh, 96px);
+      border-radius: 16px;
+    }
+    .shift-card {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: clamp(60px, 14vh, 96px);
+      border-radius: 16px;
+      padding: 8px;
+      background: transparent;
+      transition: background 0.3s, transform 0.2s;
+      user-select: none;
+    }
+    .shift-card:hover { background: rgba(128,128,128,0.08); }
+    .shift-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      line-height: 1;
+    }
+    .shift-value {
+      font-size: clamp(15px, 2.1vh, 18px);
+      color: var(--text);
+      font-weight: 700;
+      line-height: 1;
+      min-width: 28px;
+      text-align: center;
+    }
+    .shift-btn {
+      width: 34px;
+      height: 34px;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+    .shift-btn:focus,
+    .shift-btn:focus-visible { outline: none; box-shadow: none; }
+    .shift-btn svg {
+      width: 34px;
+      height: 34px;
+      display: block;
+      flex-shrink: 0;
+    }
+    .shift-btn .btn-ring {
+      fill: rgba(128,128,128,0.08);
+      stroke: var(--glass-border);
+    }
+    .shift-btn .btn-mark { stroke: var(--text); }
+    .shift-btn:hover .btn-ring { fill: rgba(128,128,128,0.16); }
+    .shift-date-value {
+      display: block;
+      margin-top: 4px;
+      font-size: clamp(15px, 2.1vh, 18px);
+      color: var(--text);
+      font-weight: 600;
+      line-height: 1.1;
+    }
+    .plus-circle {
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 8px;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+    .plus-circle svg {
+      width: 20px;
+      height: 20px;
+      display: block;
+      flex-shrink: 0;
+    }
+    .plus-circle .plus-ring { stroke: var(--glass-border); }
+    .plus-circle .plus-mark { stroke: var(--muted); }
+    .settings-item-value.preview-weekend {
+      color: var(--weekend-color);
+      text-transform: none;
+      letter-spacing: 0.3px;
+      font-size: clamp(13px, 1.9vh, 16px);
+    }
+    .settings-item-value.preview-workday {
+      color: var(--workday-color);
+      text-transform: none;
+      letter-spacing: 0.3px;
+      font-size: clamp(13px, 1.9vh, 16px);
+    }
 
     /* РћР±С‰РёРµ СЃС‚РёР»Рё СЏС‡РµРµРє */
     .cell {
@@ -186,18 +645,73 @@
     
     .cell:hover:not(.dimmed) { background: rgba(128,128,128,0.08); }
     .cell.dimmed { color: var(--dimmed-text); cursor: default; pointer-events: none; }
-
+    .cell.day.weekend { color: var(--weekend-color); }
+    .cell.day.workday { color: var(--text); }
+    .cell.day.weekend.dimmed { color: color-mix(in srgb, var(--weekend-color) 35%, transparent); }
+    .cell.day.workday.dimmed { color: var(--dimmed-text); }
+    .cell.day.shift-work {
+      color: var(--workday-color);
+    }
+    .cell.day.dual-status {
+      color: var(--weekend-color);
+    }
+    .cell.day .day-number {
+      display: inline-flex;
+      align-items: baseline;
+      justify-content: center;
+      min-width: 1ch;
+      gap: 0;
+    }
+    .cell.day.dual-status .day-number {
+      display: inline-flex;
+      transform-origin: 50% 100%;
+      animation: dualDateBounce var(--dual-cycle, 2600ms) infinite ease-out;
+      animation-delay: var(--dual-delay, 0ms);
+      color: var(--weekend-color);
+      will-change: transform;
+      transition: color 140ms linear;
+    }
+    .cell.day.dual-status .day-number.dual-switched {
+      color: var(--workday-color);
+    }
+    @keyframes dualDateBounce {
+      0%, 15% {
+        transform: translate3d(0, 0, 0) scaleY(1);
+      }
+      8% {
+        transform: translate3d(0, -3px, 0) scaleY(1.1);
+      }
+      16% { /* first touchdown (down hit) */
+        transform: translate3d(0, 0.8px, 0) scaleY(0.95);
+      }
+      28% {
+        transform: translate3d(0, -1.5px, 0) scaleY(1.05);
+      }
+      36% {
+        transform: translate3d(0, 0.5px, 0) scaleY(0.97);
+      }
+      44% {
+        transform: translate3d(0, -0.7px, 0) scaleY(1.02);
+      }
+      52% {
+        transform: translate3d(0, 0, 0) scaleY(1);
+      }
+      100% {
+        transform: translate3d(0, 0, 0) scaleY(1);
+      }
+    }
     /* РџРѕРґРїРёСЃСЊ РЅРѕРјРµСЂР° РјРµСЃСЏС†Р° (01, 02...) */
     .month-sub { font-size: 12px; color: var(--muted); font-weight: 600; }
 
     /* Р­С„С„РµРєС‚ РЎРµРіРѕРґРЅСЏ */
-    .cell.today { font-size: 28px; font-weight: 700; }
+    .cell.today { font-size: 28px; font-weight: 700; color: var(--current-color); }
     .cell.today::before {
       content: ''; position: absolute; width: 50px; height: 50px;
       background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
       opacity: 0.35; z-index: -1; animation: pulse 3s infinite ease-in-out;
     }
     @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.2; } 50% { transform: scale(1.3); opacity: 0.5; } }
+    @keyframes rainFall { from { transform: translateY(-20%); } to { transform: translateY(20%); } }
 
     /* РђРЅРёРјР°С†РёРё СЏС‡РµРµРє */
     @keyframes itemPopIn {
@@ -286,10 +800,14 @@
       .app-card { padding: 22px 14px; border-radius: 30px; }
       .header-controls { flex-direction: row; margin-bottom: 18px; }
       .year-label { font-size: 18px; width: 72px; }
-      .view-container { min-height: clamp(320px, 92vw, 430px); }
+      :root {
+        --day-cell-h: clamp(34px, 6.8vh, 56px);
+        --day-gap: 8px;
+        --dow-zone: 30px;
+      }
       /* Р’С‹С‡РёСЃР»СЏРµРј Р°РґР°РїС‚РёРІРЅС‹Р№ С†РµРЅС‚СЂ РґР»СЏ РјРµСЃСЏС†Р° СЃ СѓС‡РµС‚РѕРј Р±РѕРєРѕРІС‹С… Р±Р»РѕРєРѕРІ */
       .month-title { font-size: 20px; position: static; transform: none; flex-grow: 1; text-align: center; }
-      .controls-group { width: auto; gap: 12px; }
+      .controls-group { width: 72px; gap: 12px; }
       .grid-header { gap: 8px; margin-bottom: 10px; }
       .grid-header span { font-size: 10px; letter-spacing: 1.5px; }
       .grid-days { gap: 8px; }
@@ -309,10 +827,59 @@
         font-size: clamp(15px, 2.4vh, 17px);
       }
       .grid-years { grid-template-columns: repeat(3, 1fr); gap: 8px; } /* 3x5 */
+      .settings-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .settings-subview { grid-template-columns: 1fr; gap: 10px; }
+      .chips { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .settings-item { min-height: 86px; }
+      .settings-single-mobile { grid-template-columns: 1fr; }
+      .shift-grid { grid-template-columns: 1fr; }
+      .chips.palette-9 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .chips.matrix-3x3 { gap: 8px; }
+      .shift-grid.matrix-3x3 { gap: 8px; }
+      .shift-card {
+        padding: 6px 4px;
+        gap: 6px;
+      }
+      .shift-btn {
+        width: 30px;
+        height: 30px;
+      }
+      .shift-btn svg {
+        width: 30px;
+        height: 30px;
+      }
+      .shift-value {
+        min-width: 20px;
+        font-size: clamp(14px, 2vh, 16px);
+      }
       .cell.year {
         width: 100%;
         height: clamp(34px, 7.8vh, 50px);
         font-size: clamp(14px, 2.2vh, 16px);
+      }
+    }
+
+    @media (max-width: 420px) {
+      .shift-card { gap: 4px; }
+      .shift-btn {
+        width: 28px;
+        height: 28px;
+      }
+      .shift-btn svg {
+        width: 28px;
+        height: 28px;
+      }
+      .shift-value { min-width: 18px; }
+    }
+
+    @media (max-width: 600px) and (min-height: 780px) {
+      :root {
+        --day-cell-h: clamp(38px, 7.2vh, 62px);
+        --day-gap: 8px;
+        --dow-zone: 32px;
+      }
+      .cell.day {
+        height: clamp(38px, 7.2vh, 62px);
       }
     }
 
@@ -323,12 +890,17 @@
         padding: 8px 0;
       }
       .view-container {
-        min-height: clamp(260px, 56dvh, 420px);
+        height: calc(var(--day-cell-h) * 6 + var(--day-gap) * 5 + var(--dow-zone));
       }
     }
   </style>
 </head>
-<body data-theme="dark">
+<body>
+
+  <div class="custom-bg-layer" id="customBgLayer" aria-hidden="true">
+    <div class="custom-bg-media" id="customBgMedia"></div>
+    <div class="custom-bg-overlay" id="customBgOverlay"></div>
+  </div>
 
   <div class="onboarding-overlay" id="onboarding">
     <div class="gesture-track">
@@ -338,14 +910,11 @@
 
   <div class="app-card">
     <div class="header-controls">
-      <div class="year-label" id="yearBtn" onclick="switchLayer('years')">2024</div>
-      <div class="month-title" id="monthBtn" onclick="switchLayer('months')">Март</div>
+      <div class="year-label" id="yearBtn">2024</div>
+      <div class="month-title" id="monthBtn">Март</div>
       
       <div class="controls-group">
-        <div class="theme-toggle" onclick="toggleTheme()">
-          <div class="toggle-knob"></div>
-        </div>
-        <div class="burger-menu">
+        <div class="burger-menu" id="burgerMenu" role="button" tabindex="0" aria-label="Открыть настройки">
           <div class="burger-line"></div>
           <div class="burger-line"></div>
           <div class="burger-line"></div>
@@ -355,9 +924,7 @@
 
     <div class="view-container" id="viewContainer">
       <div class="layer active" id="layer-days">
-        <div class="grid-header">
-          <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
-        </div>
+        <div class="grid-header" id="dowHeader"></div>
         <div class="grid-days" id="grid-days"></div>
       </div>
 
@@ -368,29 +935,802 @@
       <div class="layer" id="layer-years">
         <div class="grid-years" id="grid-years"></div>
       </div>
+
+      <div class="layer" id="layer-settings">
+        <div id="settingsContent"></div>
+      </div>
     </div>
   </div>
 
   <script>
     const monthFormatter = new Intl.DateTimeFormat('ru-RU', { month: 'long' });
     const today = new Date();
+    const systemThemeMedia = window.matchMedia('(prefers-color-scheme: dark)');
     const state = {
       currentView: 'days',
+      settingsPage: 'root',
       displayYear: today.getFullYear(),
       displayMonth: today.getMonth(),
       selectedDay: today.getDate(),
+      shiftDatePickMode: false,
     };
     let isAnimating = false;
+    const dayLabels = [
+      { id: 1, name: 'Пн' }, { id: 2, name: 'Вт' }, { id: 3, name: 'Ср' },
+      { id: 4, name: 'Чт' }, { id: 5, name: 'Пт' }, { id: 6, name: 'Сб' }, { id: 0, name: 'Вс' },
+    ];
+    const accentPalette = ['#ff0000', '#ff7f00', '#ffd400', '#00a651', '#00c8ff', '#0057ff', '#6f2cff', '#ff00b7', '#ffffff'];
+    const settingsDefault = {
+      themeMode: 'system',
+      weekStart: 1,
+      weekends: [6, 0],
+      animationSpeed: 'normal',
+      accents: {
+        weekend: '#ff5f8a',
+        current: '#8b5cf6',
+        workday: '#ffffff',
+      },
+      shift: {
+        onDays: 0,
+        offDays: 0,
+        startDate: '',
+      },
+      background: {
+        mode: 'none',
+        customType: '',
+        customData: '',
+        position: 'center',
+        fill: 'cover',
+        scale: 100,
+        angle: 0,
+        darken: 25,
+        parallax: false,
+        sound: false,
+        volume: 0,
+      },
+    };
+    let settings = loadSettings();
+    let accentTarget = 'current';
+    let runtimeCustomUrl = '';
+    let parallaxOffset = { x: 0, y: 0 };
+    let bgApplyRaf = 0;
+    let bgSaveTimer = 0;
+
+    function resolveThemeFromMode(mode) {
+      if (mode === 'dark' || mode === 'light') return mode;
+      return systemThemeMedia.matches ? 'dark' : 'light';
+    }
+
+    function applyThemeMode(mode) {
+      const body = document.body;
+      body.setAttribute('data-theme', resolveThemeFromMode(mode));
+    }
+
+    function getStoredThemeMode() {
+      return settings.themeMode || 'system';
+    }
+
+    const onSystemThemeChange = () => {
+      if (getStoredThemeMode() === 'system') {
+        applyThemeMode('system');
+      }
+    };
+    if (typeof systemThemeMedia.addEventListener === 'function') {
+      systemThemeMedia.addEventListener('change', onSystemThemeChange);
+    } else if (typeof systemThemeMedia.addListener === 'function') {
+      systemThemeMedia.addListener(onSystemThemeChange);
+    }
+
+    function deepMerge(base, incoming) {
+      const result = Array.isArray(base) ? [...base] : { ...base };
+      Object.keys(incoming || {}).forEach((key) => {
+        const value = incoming[key];
+        if (value && typeof value === 'object' && !Array.isArray(value) && base[key] && typeof base[key] === 'object' && !Array.isArray(base[key])) {
+          result[key] = deepMerge(base[key], value);
+        } else {
+          result[key] = value;
+        }
+      });
+      return result;
+    }
+
+    function loadSettings() {
+      try {
+        const raw = localStorage.getItem('calendarSettings');
+        if (!raw) return JSON.parse(JSON.stringify(settingsDefault));
+        const parsed = JSON.parse(raw);
+        const merged = deepMerge(JSON.parse(JSON.stringify(settingsDefault)), parsed);
+        if (merged.background?.mode === 'paper') merged.background.mode = 'none';
+        return merged;
+      } catch {
+        return JSON.parse(JSON.stringify(settingsDefault));
+      }
+    }
+
+    function scheduleSaveSettings(delay = 120) {
+      if (bgSaveTimer) clearTimeout(bgSaveTimer);
+      bgSaveTimer = setTimeout(() => {
+        bgSaveTimer = 0;
+        saveSettings();
+      }, delay);
+    }
+
+    function scheduleBackgroundApply() {
+      if (bgApplyRaf) return;
+      bgApplyRaf = requestAnimationFrame(() => {
+        bgApplyRaf = 0;
+        applySettingsToDOM();
+      });
+    }
+
+    function saveSettings() {
+      try {
+        localStorage.setItem('calendarSettings', JSON.stringify(settings));
+      } catch {
+        // Ignore quota errors for very large custom media.
+      }
+    }
+
+    function getAnimationFactor() {
+      if (settings.animationSpeed === 'none') return 0;
+      if (settings.animationSpeed === 'slow') return 1.35;
+      if (settings.animationSpeed === 'fast') return 0.72;
+      return 1;
+    }
+
+    function composeBgTransform() {
+      const bg = settings.background;
+      const scale = (Number(bg.scale) || 100) / 100;
+      const angle = Number(bg.angle) || 0;
+      return `translate(${parallaxOffset.x}px, ${parallaxOffset.y}px) scale(${scale}) rotate(${angle}deg)`;
+    }
+
+    function applyAnimationModeToDOM() {
+      document.body.classList.toggle('anim-none', settings.animationSpeed === 'none');
+    }
+
+    function applyCustomBackground() {
+      const layer = document.getElementById('customBgLayer');
+      const media = document.getElementById('customBgMedia');
+      const overlay = document.getElementById('customBgOverlay');
+      const bg = settings.background;
+      const isCustom = bg.mode === 'custom' && (bg.customData || runtimeCustomUrl);
+      layer.classList.toggle('on', Boolean(isCustom));
+      overlay.style.opacity = String((Number(bg.darken) || 0) / 100);
+      media.style.transform = composeBgTransform();
+      media.style.backgroundPosition = bg.position || 'center';
+
+      if (!isCustom) {
+        media.innerHTML = '';
+        media.style.backgroundImage = 'none';
+        return;
+      }
+
+      const src = runtimeCustomUrl || bg.customData;
+      const type = bg.customType || '';
+      const fill = bg.fill || 'cover';
+      const isRepeat = fill === 'repeat';
+
+      if (isRepeat && type !== 'video') {
+        if (media.querySelector('video, img')) media.innerHTML = '';
+        media.style.backgroundImage = `url("${src}")`;
+        media.style.backgroundRepeat = 'repeat';
+        media.style.backgroundSize = 'auto';
+        return;
+      }
+
+      media.style.backgroundImage = 'none';
+      media.style.backgroundRepeat = 'no-repeat';
+      media.style.backgroundSize = 'cover';
+
+      if (type === 'video') {
+        let video = media.querySelector('#customBgVideo');
+        if (!video || video.dataset.src !== src) {
+          media.innerHTML = `<video id="customBgVideo" autoplay loop playsinline ${bg.sound ? '' : 'muted'}><source src="${src}"></video>`;
+          video = media.querySelector('#customBgVideo');
+          if (video) video.dataset.src = src;
+        }
+        if (video) {
+          video.style.objectFit = fill === 'contain' ? 'contain' : fill === 'fill' ? 'fill' : 'cover';
+          video.style.objectPosition = bg.position || 'center';
+          video.muted = !bg.sound;
+          video.volume = bg.sound ? Math.max(0, Math.min(1, (Number(bg.volume) || 0) / 100)) : 0;
+        }
+      } else {
+        let img = media.querySelector('img');
+        if (!img || img.dataset.src !== src) {
+          media.innerHTML = `<img src="${src}" alt="" />`;
+          img = media.querySelector('img');
+          if (img) img.dataset.src = src;
+        }
+        if (img) {
+          img.style.objectFit = fill === 'contain' ? 'contain' : fill === 'fill' ? 'fill' : 'cover';
+          img.style.objectPosition = bg.position || 'center';
+        }
+      }
+    }
+
+    function applySettingsToDOM() {
+      applyThemeMode(settings.themeMode || 'system');
+      document.body.setAttribute('data-bg', settings.background.mode || 'none');
+      document.documentElement.style.setProperty('--accent', settings.accents.current);
+      document.documentElement.style.setProperty('--current-color', settings.accents.current);
+      document.documentElement.style.setProperty('--weekend-color', settings.accents.weekend);
+      document.documentElement.style.setProperty('--workday-color', settings.accents.workday);
+      applyAnimationModeToDOM();
+      applyCustomBackground();
+      renderDOWHeader();
+    }
+
+    function settingsPageTitle() {
+      const accentLabel = accentTarget === 'weekend' ? 'Выходные' : accentTarget === 'workday' ? 'Рабочие' : 'Текущий';
+      const map = {
+        root: 'Настройки',
+        theme: 'Тема',
+        accents: 'Цвета',
+        accentColors: `Цвета: ${accentLabel}`,
+        background: 'Фон',
+        backgroundCustom: 'Свой фон',
+        weekStart: 'Начало недели',
+        weekends: 'Выходные',
+        shift: 'Смены',
+        animation: 'Анимация',
+      };
+      return map[state.settingsPage] || 'Настройки';
+    }
+
+    function getSettingsBackTarget() {
+      if (state.settingsPage === 'accentColors') return 'accents';
+      if (state.settingsPage === 'backgroundCustom') return 'background';
+      return 'root';
+    }
+
+    function animateSettingsItems(container, animName, duration, step) {
+      const items = Array.from(container.querySelectorAll('.settings-anim-cell'));
+      items.forEach((el, i) => {
+        el.style.animation = 'none';
+        el.offsetHeight;
+        el.style.animation = `${animName} ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) both ${i * step}ms`;
+      });
+      if (!items.length) return 0;
+      return duration + (items.length - 1) * step;
+    }
+
+    function padMatrix3x3(container) {
+      if (!container) return;
+      const current = container.children.length;
+      const target = 9;
+      if (current >= target) return;
+      for (let i = current; i < target; i++) {
+        const ph = document.createElement('div');
+        ph.className = 'matrix-placeholder';
+        ph.setAttribute('aria-hidden', 'true');
+        container.appendChild(ph);
+      }
+    }
+
+    function transitionSettingsPage(targetPage, direction = 'next') {
+      if (isAnimating || state.settingsPage === targetPage) return;
+      const factor = getAnimationFactor();
+      if (factor === 0) {
+        state.settingsPage = targetPage;
+        renderSettings();
+        syncHeader();
+        return;
+      }
+      const root = document.getElementById('settingsContent');
+      if (!root) return;
+      isAnimating = true;
+      const outName = direction === 'next' ? 'slideNextOut' : 'slidePrevOut';
+      const outDuration = Math.round(260 * factor);
+      const step = Math.round(15 * factor);
+      const outTotal = animateSettingsItems(root, outName, outDuration, step);
+      setTimeout(() => {
+        state.settingsPage = targetPage;
+        renderSettings(direction === 'next' ? 'slideNextIn' : 'slidePrevIn');
+        syncHeader();
+        setTimeout(() => {
+          isAnimating = false;
+        }, Math.round(420 * factor));
+      }, outTotal || outDuration);
+    }
+
+    function renderDOWHeader() {
+      const header = document.getElementById('dowHeader');
+      if (!header) return;
+      const labels = [];
+      for (let i = 0; i < 7; i++) {
+        const js = (settings.weekStart + i) % 7;
+        labels.push(dayLabels.find((d) => d.id === js)?.name || '');
+      }
+      header.innerHTML = labels.map((name) => `<span>${name}</span>`).join('');
+    }
+
+    function formatShortDate(iso) {
+      if (!iso) return '';
+      const d = new Date(`${iso}T00:00:00`);
+      if (Number.isNaN(d.getTime())) return '';
+      return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+
+    function toLocalIsoDate(dateObj) {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const d = String(dateObj.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function getAccentPreview(kind) {
+      const cells = getDayCellsData(state.displayYear, state.displayMonth).filter((c) => c.monthShift === 0);
+      const picked = [];
+      const hasShiftConfig = settings.shift.onDays > 0 && settings.shift.offDays > 0 && Boolean(settings.shift.startDate);
+      if (kind === 'workday' && !hasShiftConfig) return '-';
+      for (let i = 0; i < cells.length; i++) {
+        const c = cells[i];
+        const isWeekend = c.className.includes('weekend');
+        const isShiftWork = c.className.includes('shift-work');
+        if ((kind === 'weekend' && isWeekend) || (kind === 'workday' && isShiftWork)) {
+          picked.push(String(c.value));
+        }
+        if (picked.length >= 3) break;
+      }
+      return picked.join(' ') || '-';
+    }
+
+    function renderSettings(animName = 'itemPopIn') {
+      const root = document.getElementById('settingsContent');
+      if (!root) return;
+      const animateIn = () => {
+        const factor = getAnimationFactor();
+        if (factor === 0) return;
+        const validAnimations = new Set(['itemPopIn', 'slideNextIn', 'slidePrevIn']);
+        const animation = validAnimations.has(animName) ? animName : 'itemPopIn';
+        const duration = Math.round(360 * factor);
+        const step = Math.round(15 * factor);
+        animateSettingsItems(root, animation, duration, step);
+      };
+      if (state.settingsPage === 'root') {
+        const bgLabelMap = {
+          none: 'Нет',
+          bubbles: 'Пузыри',
+          honeycomb: 'Соты',
+          grid: 'Сетка',
+          dots: 'Точки',
+          hatch: 'Штриховка',
+          circuit: 'Плата',
+          rain: 'Дождь',
+          custom: 'Свой',
+        };
+        root.className = 'settings-grid settings-single-mobile';
+        root.innerHTML = `<div class="settings-sec" style="grid-column: 1 / -1;"><div class="chips matrix-3x3" id="rootSettingsGrid"></div></div>`;
+        const grid = document.getElementById('rootSettingsGrid');
+        const rootItems = [
+          { page: 'theme', title: 'Тема', value: settings.themeMode === 'system' ? 'Система' : settings.themeMode === 'dark' ? 'Тёмная' : 'Светлая' },
+          { page: 'accents', title: 'Цвета', value: 'Палитра' },
+          { page: 'background', title: 'Фон', value: bgLabelMap[settings.background.mode] || 'Нет' },
+          { page: 'weekStart', title: 'Начало недели', value: dayLabels.find((d) => d.id === settings.weekStart)?.name || 'Пн' },
+          { page: 'weekends', title: 'Выходные', value: settings.weekends.map((d) => dayLabels.find((it) => it.id === d)?.name).filter(Boolean).join(', ') || '—' },
+          { page: 'shift', title: 'Смены', value: settings.shift.onDays > 0 && settings.shift.offDays > 0 && settings.shift.startDate ? `${settings.shift.onDays}/${settings.shift.offDays}` : 'Выключено' },
+          { page: 'animation', title: 'Анимация', value: settings.animationSpeed === 'none' ? 'Нет' : settings.animationSpeed === 'slow' ? 'Медленно' : settings.animationSpeed === 'fast' ? 'Быстро' : 'Нормально' },
+        ];
+        rootItems.forEach((item) => {
+          const el = document.createElement('div');
+          el.className = 'settings-item cell month settings-anim-cell';
+          el.dataset.page = item.page;
+          el.innerHTML = `<span class="settings-item-title">${item.title}</span><span class="settings-item-value">${item.value}</span>`;
+          grid.appendChild(el);
+        });
+        padMatrix3x3(grid);
+        root.querySelectorAll('[data-page]').forEach((el) => {
+          el.onclick = () => {
+            transitionSettingsPage(el.dataset.page, 'next');
+          };
+        });
+        animateIn();
+        return;
+      }
+
+      root.className = 'settings-subview';
+      if (state.settingsPage === 'theme') {
+        root.className = 'settings-grid settings-single-mobile';
+        root.innerHTML = `<div class="settings-sec" style="grid-column: 1 / -1;"><div class="chips matrix-3x3" id="themeChips"></div></div>`;
+        const chips = document.getElementById('themeChips');
+        [{ id: 'system', label: 'Система' }, { id: 'dark', label: 'Тёмная' }, { id: 'light', label: 'Светлая' }].forEach((item) => {
+          const el = document.createElement('div');
+          el.className = `chip settings-anim-cell${settings.themeMode === item.id ? ' on' : ''}`;
+          el.innerHTML = `<span class="chip-label">${item.label}</span>`;
+          el.onclick = () => {
+            settings.themeMode = item.id;
+            saveSettings();
+            applySettingsToDOM();
+            renderSettings();
+          };
+          chips.appendChild(el);
+        });
+        padMatrix3x3(chips);
+      } else if (state.settingsPage === 'accents') {
+        root.className = 'settings-grid settings-single-mobile';
+        root.innerHTML = `<div class="settings-sec" style="grid-column: 1 / -1;"><div class="chips settings-single-mobile" id="accentTargetChips"></div></div>`;
+        const targets = [
+          { id: 'current', label: 'Текущий' },
+          { id: 'weekend', label: 'Выходные' },
+          { id: 'workday', label: 'Рабочие' },
+        ];
+        const targetWrap = document.getElementById('accentTargetChips');
+        targets.forEach((item) => {
+          const el = document.createElement('div');
+          el.className = `settings-item cell month settings-anim-cell${item.id === 'current' ? ' on' : ''}`;
+          let valueHtml = 'Выбор';
+          if (item.id === 'weekend') valueHtml = `<span class="settings-item-value preview-weekend">${getAccentPreview('weekend')}</span>`;
+          if (item.id === 'workday') valueHtml = `<span class="settings-item-value preview-workday">${getAccentPreview('workday')}</span>`;
+          if (item.id === 'current') valueHtml = `<span class="settings-item-value">Выбор</span>`;
+          el.innerHTML = `<span class="settings-item-title">${item.label}</span>${valueHtml}`;
+          el.onclick = () => {
+            accentTarget = item.id;
+            transitionSettingsPage('accentColors', 'next');
+          };
+          targetWrap.appendChild(el);
+        });
+      } else if (state.settingsPage === 'accentColors') {
+        root.className = 'settings-grid settings-single-mobile';
+        root.innerHTML = `<div class="settings-sec" style="grid-column: 1 / -1;"><div class="chips palette-9" id="accentColorChips"></div></div>`;
+        const colorWrap = document.getElementById('accentColorChips');
+        accentPalette.forEach((color) => {
+          const el = document.createElement('div');
+          el.className = `settings-item cell month color-chip-card settings-anim-cell${settings.accents[accentTarget] === color ? ' on' : ''}`;
+          el.innerHTML = `<span class="color-chip-dot" style="background:${color}"></span>`;
+          el.onclick = () => {
+            settings.accents[accentTarget] = color;
+            saveSettings();
+            applySettingsToDOM();
+            renderCurrent('itemPopIn');
+            renderSettings();
+          };
+          colorWrap.appendChild(el);
+        });
+      } else if (state.settingsPage === 'weekStart') {
+        root.className = 'settings-grid settings-single-mobile';
+        root.innerHTML = `<div class="settings-sec" style="grid-column: 1 / -1;"><div class="chips matrix-3x3" id="weekStartChips"></div></div>`;
+        const wrap = document.getElementById('weekStartChips');
+        dayLabels.forEach((d) => {
+          const el = document.createElement('div');
+          el.className = `chip settings-anim-cell${settings.weekStart === d.id ? ' on' : ''}`;
+          el.innerHTML = `<span class="chip-label">${d.name}</span>`;
+          el.onclick = () => {
+            settings.weekStart = d.id;
+            saveSettings();
+            applySettingsToDOM();
+            renderCurrent('itemPopIn');
+            renderSettings();
+          };
+          wrap.appendChild(el);
+        });
+        padMatrix3x3(wrap);
+      } else if (state.settingsPage === 'weekends') {
+        root.className = 'settings-grid settings-single-mobile';
+        root.innerHTML = `<div class="settings-sec" style="grid-column: 1 / -1;"><div class="chips matrix-3x3" id="weekendChips"></div></div>`;
+        const wrap = document.getElementById('weekendChips');
+        dayLabels.forEach((d) => {
+          const on = settings.weekends.includes(d.id);
+          const el = document.createElement('div');
+          el.className = `chip settings-anim-cell${on ? ' on' : ''}`;
+          el.innerHTML = `<span class="chip-label">${d.name}</span>`;
+          el.onclick = () => {
+            if (settings.weekends.includes(d.id)) {
+              settings.weekends = settings.weekends.filter((x) => x !== d.id);
+            } else {
+              settings.weekends.push(d.id);
+            }
+            saveSettings();
+            applySettingsToDOM();
+            renderCurrent('itemPopIn');
+            renderSettings();
+          };
+          wrap.appendChild(el);
+        });
+        padMatrix3x3(wrap);
+      } else if (state.settingsPage === 'shift') {
+        root.className = 'settings-grid settings-single-mobile';
+        const hasShift = settings.shift.onDays > 0 && settings.shift.offDays > 0 && settings.shift.startDate;
+        const dateLabel = settings.shift.startDate ? formatShortDate(settings.shift.startDate) : '';
+        const dateValueHtml = settings.shift.startDate
+          ? `<span class="settings-item-value">${dateLabel}</span>`
+          : `<span class="settings-item-value"><span class="plus-circle" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle class="plus-ring" cx="10" cy="10" r="9" stroke-width="1.2"/><path class="plus-mark" d="M10 6V14M6 10H14" stroke-width="1.6" stroke-linecap="round"/></svg></span>Дата</span>`;
+        root.innerHTML = `
+          <div class="settings-sec" style="grid-column: 1 / -1;">
+            <div class="shift-grid matrix-3x3" id="shiftGrid">
+              <div class="shift-card settings-anim-cell">
+                <button class="shift-btn" id="shiftOnMinus" type="button" aria-label="Уменьшить рабочие дни">
+                  <svg viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle class="btn-ring" cx="17" cy="17" r="16.4" stroke-width="1.2"/>
+                    <path class="btn-mark" d="M11 17H23" stroke-width="2.2" stroke-linecap="round"/>
+                  </svg>
+                </button>
+                <div>
+                  <div class="shift-value" id="shiftOnVal">${settings.shift.onDays}</div>
+                </div>
+                <button class="shift-btn" id="shiftOnPlus" type="button" aria-label="Увеличить рабочие дни">
+                  <svg viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle class="btn-ring" cx="17" cy="17" r="16.4" stroke-width="1.2"/>
+                    <path class="btn-mark" d="M17 11V23M11 17H23" stroke-width="2.2" stroke-linecap="round"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="shift-card settings-anim-cell">
+                <button class="shift-btn" id="shiftOffMinus" type="button" aria-label="Уменьшить выходные дни">
+                  <svg viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle class="btn-ring" cx="17" cy="17" r="16.4" stroke-width="1.2"/>
+                    <path class="btn-mark" d="M11 17H23" stroke-width="2.2" stroke-linecap="round"/>
+                  </svg>
+                </button>
+                <div>
+                  <div class="shift-value" id="shiftOffVal">${settings.shift.offDays}</div>
+                </div>
+                <button class="shift-btn" id="shiftOffPlus" type="button" aria-label="Увеличить выходные дни">
+                  <svg viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle class="btn-ring" cx="17" cy="17" r="16.4" stroke-width="1.2"/>
+                    <path class="btn-mark" d="M17 11V23M11 17H23" stroke-width="2.2" stroke-linecap="round"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="settings-item cell month settings-anim-cell" id="shiftDatePick">
+                ${dateValueHtml}
+              </div>
+              <div class="settings-item cell month settings-anim-cell${hasShift ? '' : ' dimmed'}" id="shiftReset">
+                <span class="settings-item-title">Сброс</span>
+              </div>
+            </div>
+          </div>`;
+        const clampShiftValue = (v) => Math.max(0, Math.min(14, v));
+        const applyShift = () => {
+          saveSettings();
+          const onEl = document.getElementById('shiftOnVal');
+          const offEl = document.getElementById('shiftOffVal');
+          const resetEl = document.getElementById('shiftReset');
+          if (onEl) onEl.textContent = String(settings.shift.onDays);
+          if (offEl) offEl.textContent = String(settings.shift.offDays);
+          if (resetEl) {
+            const hasShiftNow = settings.shift.onDays > 0 && settings.shift.offDays > 0 && settings.shift.startDate;
+            resetEl.classList.toggle('dimmed', !hasShiftNow);
+          }
+        };
+        document.getElementById('shiftOnMinus').onclick = () => { settings.shift.onDays = clampShiftValue(settings.shift.onDays - 1); applyShift(); };
+        document.getElementById('shiftOnPlus').onclick = () => { settings.shift.onDays = clampShiftValue(settings.shift.onDays + 1); applyShift(); };
+        document.getElementById('shiftOffMinus').onclick = () => { settings.shift.offDays = clampShiftValue(settings.shift.offDays - 1); applyShift(); };
+        document.getElementById('shiftOffPlus').onclick = () => { settings.shift.offDays = clampShiftValue(settings.shift.offDays + 1); applyShift(); };
+        document.getElementById('shiftDatePick').onclick = () => {
+          state.shiftDatePickMode = true;
+          activateLayer('days', 'itemPopIn');
+        };
+        document.getElementById('shiftReset').onclick = () => {
+          settings.shift.onDays = 0;
+          settings.shift.offDays = 0;
+          settings.shift.startDate = '';
+          saveSettings();
+          renderCurrent('itemPopIn');
+          renderSettings();
+        };
+        padMatrix3x3(document.getElementById('shiftGrid'));
+      } else if (state.settingsPage === 'animation') {
+        root.className = 'settings-grid settings-single-mobile';
+        root.innerHTML = `<div class="settings-sec" style="grid-column: 1 / -1;"><div class="chips matrix-3x3" id="animChips"></div></div>`;
+        const wrap = document.getElementById('animChips');
+        [{ id: 'none', label: 'Нет' }, { id: 'slow', label: 'Медленно' }, { id: 'normal', label: 'Нормально' }, { id: 'fast', label: 'Быстро' }].forEach((item) => {
+          const el = document.createElement('div');
+          el.className = `chip settings-anim-cell${settings.animationSpeed === item.id ? ' on' : ''}`;
+          el.innerHTML = `<span class="chip-label">${item.label}</span>`;
+          el.onclick = () => {
+            settings.animationSpeed = item.id;
+            saveSettings();
+            applySettingsToDOM();
+            renderSettings();
+          };
+          wrap.appendChild(el);
+        });
+        padMatrix3x3(wrap);
+      } else if (state.settingsPage === 'background') {
+        root.className = 'settings-grid settings-single-mobile';
+        root.innerHTML = `
+          <div class="settings-sec" style="grid-column: 1 / -1;">
+            <div class="chips matrix-3x3" id="bgModeChips"></div>
+          </div>`;
+
+        const modeWrap = document.getElementById('bgModeChips');
+        [
+          { id: 'none', label: 'Нет' },
+          { id: 'bubbles', label: 'Пузыри' },
+          { id: 'honeycomb', label: 'Соты' },
+          { id: 'grid', label: 'Сетка' },
+          { id: 'dots', label: 'Точки' },
+          { id: 'hatch', label: 'Штриховка' },
+          { id: 'circuit', label: 'Печатная плата' },
+          { id: 'rain', label: 'Дождь' },
+          { id: 'custom', label: 'Свой' },
+        ].forEach((item) => {
+          const el = document.createElement('div');
+          el.className = `chip settings-anim-cell${settings.background.mode === item.id ? ' on' : ''}`;
+          el.innerHTML = `<span class="chip-label">${item.label}</span>`;
+          el.onclick = () => {
+            if (item.id === 'custom') {
+              settings.background.mode = 'custom';
+              saveSettings();
+              applySettingsToDOM();
+              transitionSettingsPage('backgroundCustom', 'next');
+            } else {
+              settings.background.mode = item.id;
+              saveSettings();
+              applySettingsToDOM();
+              renderSettings();
+            }
+          };
+          modeWrap.appendChild(el);
+        });
+        padMatrix3x3(modeWrap);
+      } else if (state.settingsPage === 'backgroundCustom') {
+        const bg = settings.background;
+        if (bg.mode !== 'custom') bg.mode = 'custom';
+        root.innerHTML = `
+          <div class="settings-sec">
+          <input class="file-input" id="bgFileInput" type="file" accept="image/*,video/mp4,video/webm" />
+          <div class="setting-row"><label>Позиция</label><select id="bgPosition"><option value="center">Центр</option><option value="top">Сверху</option><option value="bottom">Снизу</option><option value="left">Слева</option><option value="right">Справа</option></select></div>
+          <div class="setting-row"><label>Заполнение</label><select id="bgFill"><option value="cover">Заполнить</option><option value="contain">Вписать</option><option value="fill">Растянуть</option><option value="repeat">Плитка</option></select></div>
+          <div class="setting-row"><label>Масштаб</label><input id="bgScale" type="range" min="50" max="200" step="1" /></div>
+          <div class="setting-row"><label>Угол</label><input id="bgAngle" type="range" min="-30" max="30" step="1" /></div>
+          <div class="setting-row"><label>Затемнение</label><input id="bgDarken" type="range" min="0" max="80" step="1" /></div>
+          <div class="chips"><div class="chip settings-anim-cell ${bg.parallax ? 'on' : ''}" id="bgParallax"><span class="chip-label">Параллакс</span></div><div class="chip settings-anim-cell ${bg.sound ? 'on' : ''}" id="bgSound"><span class="chip-label">Звук</span></div><div class="chip settings-anim-cell" id="bgReset"><span class="chip-label">Сброс фона</span></div></div>
+          <div class="setting-row"><label>Громкость</label><input id="bgVolume" type="range" min="0" max="100" step="1" ${bg.customType === 'video' ? '' : 'disabled'} /></div>
+          </div>`;
+
+        const fileInput = document.getElementById('bgFileInput');
+        fileInput.onchange = (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          const isVideo = file.type.startsWith('video/');
+          const isGif = file.type.includes('gif');
+          settings.background.customType = isVideo ? 'video' : isGif ? 'gif' : 'image';
+          if (runtimeCustomUrl) URL.revokeObjectURL(runtimeCustomUrl);
+          runtimeCustomUrl = URL.createObjectURL(file);
+          if (!isVideo && file.size <= 1024 * 1024 * 3) {
+            const reader = new FileReader();
+            reader.onload = () => {
+              settings.background.customData = String(reader.result || '');
+              saveSettings();
+              applySettingsToDOM();
+            };
+            reader.readAsDataURL(file);
+          } else {
+            settings.background.customData = '';
+          }
+          saveSettings();
+          applySettingsToDOM();
+          renderSettings();
+        };
+
+        document.getElementById('bgPosition').value = bg.position;
+        document.getElementById('bgFill').value = bg.fill;
+        document.getElementById('bgScale').value = String(bg.scale);
+        document.getElementById('bgAngle').value = String(bg.angle);
+        document.getElementById('bgDarken').value = String(bg.darken);
+        document.getElementById('bgVolume').value = String(bg.volume);
+        document.getElementById('bgPosition').onchange = (e) => { bg.position = e.target.value; saveSettings(); applySettingsToDOM(); };
+        document.getElementById('bgFill').onchange = (e) => { bg.fill = e.target.value; saveSettings(); applySettingsToDOM(); };
+        document.getElementById('bgScale').oninput = (e) => { bg.scale = Number(e.target.value); scheduleSaveSettings(); scheduleBackgroundApply(); };
+        document.getElementById('bgAngle').oninput = (e) => { bg.angle = Number(e.target.value); scheduleSaveSettings(); scheduleBackgroundApply(); };
+        document.getElementById('bgDarken').oninput = (e) => { bg.darken = Number(e.target.value); scheduleSaveSettings(); scheduleBackgroundApply(); };
+        document.getElementById('bgVolume').oninput = (e) => { bg.volume = Number(e.target.value); scheduleSaveSettings(); scheduleBackgroundApply(); };
+        document.getElementById('bgParallax').onclick = () => { bg.parallax = !bg.parallax; saveSettings(); renderSettings(); };
+        document.getElementById('bgSound').onclick = () => { bg.sound = !bg.sound; saveSettings(); applySettingsToDOM(); renderSettings(); };
+        document.getElementById('bgReset').onclick = () => {
+          if (runtimeCustomUrl) URL.revokeObjectURL(runtimeCustomUrl);
+          runtimeCustomUrl = '';
+          settings.background.customType = '';
+          settings.background.customData = '';
+          settings.background.mode = 'none';
+          saveSettings();
+          applySettingsToDOM();
+          transitionSettingsPage('background', 'prev');
+        };
+      }
+      animateIn();
+    }
+
+    function bindHeaderInteractions() {
+      document.getElementById('yearBtn').onclick = () => {
+        if (state.currentView === 'settings') {
+          if (state.settingsPage !== 'root') {
+            transitionSettingsPage(getSettingsBackTarget(), 'prev');
+          }
+          return;
+        }
+        switchLayer('years');
+      };
+      document.getElementById('monthBtn').onclick = () => {
+        if (state.currentView === 'settings') return;
+        switchLayer('months');
+      };
+    }
+
+    function openSettings(page = 'root') {
+      state.shiftDatePickMode = false;
+      state.settingsPage = page;
+      activateLayer('settings', 'itemPopIn');
+      setBurgerOpen(true);
+    }
+
+    function closeSettings() {
+      const burger = document.getElementById('burgerMenu');
+      if (burger) {
+        burger.classList.remove('open');
+        burger.blur();
+      }
+      if (state.currentView !== 'settings') return;
+      state.shiftDatePickMode = false;
+      activateLayer('days', 'itemPopIn');
+      setBurgerOpen(false);
+      // Safety reset for mobile/touch where state can visually stick during transition.
+      setTimeout(() => {
+        const b = document.getElementById('burgerMenu');
+        if (!b) return;
+        b.classList.remove('open');
+        b.blur();
+      }, 0);
+      setTimeout(() => {
+        const b = document.getElementById('burgerMenu');
+        if (!b) return;
+        b.classList.remove('open');
+      }, 220);
+    }
+
+    function setBurgerOpen(open) {
+      const burger = document.getElementById('burgerMenu');
+      if (!burger) return;
+      const isOpen = Boolean(open);
+      burger.classList.toggle('open', isOpen);
+      burger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      if (!isOpen) burger.blur();
+    }
+
+    function bindBurgerInteraction() {
+      const burger = document.getElementById('burgerMenu');
+      burger.onclick = () => {
+        if (state.currentView === 'settings') closeSettings();
+        else openSettings();
+      };
+      burger.onkeydown = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          burger.click();
+        }
+      };
+    }
 
     document.addEventListener("DOMContentLoaded", () => {
+      bindHeaderInteractions();
+      bindBurgerInteraction();
       checkOnboarding();
+      applySettingsToDOM();
+      renderSettings();
       renderCurrent('itemPopIn');
     });
 
-    function toggleTheme() {
-      const body = document.body;
-      body.setAttribute('data-theme', body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-    }
+    window.addEventListener('pointermove', (e) => {
+      const mediaEl = document.getElementById('customBgMedia');
+      if (!mediaEl) return;
+      if (!settings.background.parallax || settings.background.mode !== 'custom') {
+        if (parallaxOffset.x !== 0 || parallaxOffset.y !== 0) {
+          parallaxOffset = { x: 0, y: 0 };
+          mediaEl.style.transform = composeBgTransform();
+        }
+        return;
+      }
+      const cx = window.innerWidth / 2;
+      const cy = window.innerHeight / 2;
+      parallaxOffset = {
+        x: ((e.clientX - cx) / Math.max(cx, 1)) * 10,
+        y: ((e.clientY - cy) / Math.max(cy, 1)) * 10,
+      };
+      mediaEl.style.transform = composeBgTransform();
+    }, { passive: true });
 
     function checkOnboarding() {
       if (!localStorage.getItem('premiumCalendarOnboardingDone')) {
@@ -427,9 +1767,33 @@
       return window.innerWidth <= 600 ? 15 : 35;
     }
 
+    function isShiftWorkDay(dateObj) {
+      const sh = settings.shift;
+      if (!sh || !sh.onDays || !sh.offDays || !sh.startDate) return false;
+      const start = new Date(`${sh.startDate}T00:00:00`);
+      if (Number.isNaN(start.getTime())) return false;
+      const current = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+      const diffDays = Math.floor((current - start) / 86400000);
+      const cycle = sh.onDays + sh.offDays;
+      if (cycle <= 0) return false;
+      const cycleIndex = ((diffDays % cycle) + cycle) % cycle;
+      return cycleIndex < sh.onDays;
+    }
+
     function syncHeader() {
-      document.getElementById('yearBtn').textContent = state.displayYear;
-      document.getElementById('monthBtn').textContent = getMonthName(state.displayMonth);
+      const yearBtn = document.getElementById('yearBtn');
+      const monthBtn = document.getElementById('monthBtn');
+      if (state.currentView === 'settings') {
+        yearBtn.textContent = state.settingsPage === 'root' ? '' : '←';
+        yearBtn.style.opacity = state.settingsPage === 'root' ? '0' : '1';
+        yearBtn.style.pointerEvents = state.settingsPage === 'root' ? 'none' : 'auto';
+        monthBtn.textContent = settingsPageTitle();
+        return;
+      }
+      yearBtn.style.opacity = '1';
+      yearBtn.style.pointerEvents = 'auto';
+      yearBtn.textContent = state.displayYear;
+      monthBtn.textContent = state.shiftDatePickMode ? 'Выберите дату' : getMonthName(state.displayMonth);
     }
 
     function renderCurrent(animName = 'itemPopIn') {
@@ -437,26 +1801,39 @@
       if (state.currentView === 'days') renderDays(animName);
       if (state.currentView === 'months') renderMonths(animName);
       if (state.currentView === 'years') renderYears(animName);
+      if (state.currentView === 'settings') renderSettings(animName);
     }
 
     function activateLayer(targetView, animName = 'itemPopIn') {
       document.getElementById(`layer-${state.currentView}`).classList.remove('active');
       document.getElementById(`layer-${targetView}`).classList.add('active');
       state.currentView = targetView;
+      if (targetView !== 'settings') setBurgerOpen(false);
+      if (targetView === 'settings') setBurgerOpen(true);
       renderCurrent(animName);
     }
 
     function switchLayer(targetView) {
+      if (targetView === 'settings') {
+        openSettings();
+        return;
+      }
+      if (state.currentView === 'settings') return;
       if (isAnimating || state.currentView === targetView) return;
+      const factor = getAnimationFactor();
+      if (factor === 0) {
+        activateLayer(targetView, 'itemPopIn');
+        return;
+      }
       isAnimating = true;
       activateLayer(targetView, 'itemPopIn');
       setTimeout(() => {
         isAnimating = false;
-      }, 260);
+      }, Math.round(260 * factor));
     }
 
     function getDayCellsData(year, month) {
-      const firstWeekDay = (new Date(year, month, 1).getDay() + 6) % 7;
+      const firstWeekDay = (new Date(year, month, 1).getDay() - settings.weekStart + 7) % 7;
       const daysInMonth = getDaysInMonth(year, month);
       const prevMonthDays = getDaysInMonth(year, month - 1);
       const cells = [];
@@ -481,6 +1858,13 @@
         const classes = ['cell', 'day'];
         if (monthShift !== 0) classes.push('dimmed');
         if (isToday) classes.push('today');
+        const col = i % 7;
+        const jsDay = (settings.weekStart + col) % 7;
+        if (settings.weekends.includes(jsDay)) classes.push('weekend');
+        else classes.push('workday');
+        const isShiftWork = monthShift === 0 && isShiftWorkDay(targetDate);
+        if (isShiftWork) classes.push('shift-work');
+        if (isShiftWork && settings.weekends.includes(jsDay)) classes.push('dual-status');
         cells.push({ value, monthShift, className: classes.join(' ') });
       }
 
@@ -520,6 +1904,16 @@
       grid.querySelectorAll('.cell.day').forEach((cell) => {
         cell.onclick = () => {
           const day = Number(cell.dataset.day);
+          if (state.shiftDatePickMode) {
+            const shift = Number(cell.dataset.shift || 0);
+            const picked = new Date(state.displayYear, state.displayMonth + shift, day);
+            settings.shift.startDate = toLocalIsoDate(picked);
+            saveSettings();
+            state.shiftDatePickMode = false;
+            renderCurrent('itemPopIn');
+            openSettings('shift');
+            return;
+          }
           state.selectedDay = day;
         };
       });
@@ -541,11 +1935,67 @@
       const grid = document.getElementById('grid-days');
       const cellsData = getDayCellsData(state.displayYear, state.displayMonth);
       grid.innerHTML = cellsData
-        .map((item) => `<div class="${item.className}" data-day="${item.value}" data-shift="${item.monthShift}">${item.value}</div>`)
+        .map((item) => `<div class="${item.className}" data-day="${item.value}" data-shift="${item.monthShift}">${getDayCellContent(item)}</div>`)
         .join('');
 
       bindDayCellClicks(grid);
       applyStaggerAnimation(grid, animName);
+      applyDualStatusSequence(grid);
+    }
+
+    function getDayCellContent(item) {
+      const str = String(item.value);
+      return `<span class="day-number">${str}</span>`;
+    }
+
+    const dualTimers = [];
+    function clearDualTimers() {
+      dualTimers.forEach(({ type, id }) => type === 'interval' ? clearInterval(id) : clearTimeout(id));
+      dualTimers.length = 0;
+    }
+
+    function applyDualStatusSequence(grid, alreadyVisible = false) {
+      clearDualTimers();
+      const cells = Array.from(grid.querySelectorAll('.cell.day.dual-status'));
+      if (!cells.length) return;
+
+      const stepMs = 260;
+      const cycleMs = Math.max(2200, 1200 + (cells.length * stepMs));
+      const touchdownMs = Math.round(cycleMs * 0.16);
+
+      cells.forEach((cell, index) => {
+        const el = cell.querySelector('.day-number');
+        if (!el) return;
+
+        const popInFinish = alreadyVisible ? 0 : (500 + (index * 15) + 40);
+        const bounceDelay = popInFinish + (index * stepMs);
+
+        el.style.setProperty('--dual-delay', `${bounceDelay}ms`);
+        el.style.setProperty('--dual-cycle', `${cycleMs}ms`);
+        el.classList.remove('dual-switched');
+
+        // Fire at the START of each cycle (every cycleMs, beginning at bounceDelay).
+        // Inside each tick schedule the color flip at +touchdownMs (= 16% into cycle).
+        const t0 = setTimeout(() => {
+          const scheduleFlip = () => {
+            const t = setTimeout(() => {
+              if (!el.isConnected) return;
+              el.classList.toggle('dual-switched');
+            }, touchdownMs);
+            dualTimers.push({ type: 'timeout', id: t });
+          };
+
+          scheduleFlip(); // cycle 1 touchdown
+
+          const iv = setInterval(() => {
+            if (!el.isConnected) { clearInterval(iv); return; }
+            scheduleFlip(); // every subsequent cycle's touchdown
+          }, cycleMs);
+          dualTimers.push({ type: 'interval', id: iv });
+
+        }, bounceDelay);
+        dualTimers.push({ type: 'timeout', id: t0 });
+      });
     }
 
     function selectMonth(monthIndex) {
@@ -554,8 +2004,15 @@
       const monthChanged = monthIndex !== prevMonth;
       const direction = monthIndex > prevMonth ? 'next' : 'prev';
       const changes = { yearChanged: false, monthChanged };
+      const factor = getAnimationFactor();
 
       if (!monthChanged) {
+        activateLayer('days', 'itemPopIn');
+        return;
+      }
+      if (factor === 0) {
+        state.displayMonth = monthIndex;
+        state.selectedDay = Math.min(state.selectedDay, getDaysInMonth(state.displayYear, monthIndex));
         activateLayer('days', 'itemPopIn');
         return;
       }
@@ -569,8 +2026,8 @@
         animateHeader(direction, 'in', changes);
         setTimeout(() => {
           isAnimating = false;
-        }, 300);
-      }, 220);
+        }, Math.round(300 * factor));
+      }, Math.round(220 * factor));
     }
 
     function renderMonths(animName) {
@@ -590,8 +2047,15 @@
       const yearChanged = year !== prevYear;
       const direction = year > prevYear ? 'next' : 'prev';
       const changes = { yearChanged, monthChanged: false };
+      const factor = getAnimationFactor();
 
       if (!yearChanged) {
+        activateLayer('months', 'itemPopIn');
+        return;
+      }
+      if (factor === 0) {
+        state.displayYear = year;
+        state.selectedDay = Math.min(state.selectedDay, getDaysInMonth(state.displayYear, state.displayMonth));
         activateLayer('months', 'itemPopIn');
         return;
       }
@@ -605,8 +2069,8 @@
         animateHeader(direction, 'in', changes);
         setTimeout(() => {
           isAnimating = false;
-        }, 300);
-      }, 220);
+        }, Math.round(300 * factor));
+      }, Math.round(220 * factor));
     }
 
     function renderYears(animName) {
@@ -623,12 +2087,21 @@
     function applyStaggerAnimation(grid, animName) {
       const validAnimations = new Set(['itemPopIn', 'slideNextIn', 'slidePrevIn', 'itemFadeOut']);
       const animation = validAnimations.has(animName) ? animName : 'itemPopIn';
+      const factor = getAnimationFactor();
       const cells = grid.querySelectorAll('.cell');
+      if (factor === 0) {
+        cells.forEach((cell) => {
+          cell.style.animation = 'none';
+          cell.style.opacity = '1';
+        });
+        return;
+      }
       cells.forEach((cell, i) => {
-        const delay = i * 15;
+        const delay = i * Math.round(15 * factor);
         cell.style.animation = 'none';
         cell.offsetHeight;
-        cell.style.animation = `${animation} 0.5s cubic-bezier(0.16, 1, 0.3, 1) both ${delay}ms`;
+        const duration = Math.round(500 * factor);
+        cell.style.animation = `${animation} ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) both ${delay}ms`;
       });
     }
 
@@ -654,6 +2127,8 @@
     }
 
     function animateHeader(direction, phase, changes) {
+      const factor = getAnimationFactor();
+      if (factor === 0) return;
       const targets = [];
       if (changes.yearChanged) targets.push(document.getElementById('yearBtn'));
       if (changes.monthChanged) targets.push(document.getElementById('monthBtn'));
@@ -668,11 +2143,12 @@
         if (!el) return;
         el.style.animation = 'none';
         el.offsetHeight;
-        el.style.animation = `${animName} 260ms cubic-bezier(0.16, 1, 0.3, 1) both`;
+        el.style.animation = `${animName} ${Math.round(260 * factor)}ms cubic-bezier(0.16, 1, 0.3, 1) both`;
       });
     }
 
     function navigateContent(direction) {
+      if (state.currentView === 'settings') return;
       if (isAnimating) return;
       isAnimating = true;
 
@@ -720,6 +2196,15 @@
     }
 
     function transitionGridByRows(view, direction, nextYear, nextMonth, nextSelectedDay, changes) {
+      const factor = getAnimationFactor();
+      if (factor === 0) {
+        state.displayYear = nextYear;
+        state.displayMonth = nextMonth;
+        state.selectedDay = nextSelectedDay;
+        renderCurrent('itemPopIn');
+        isAnimating = false;
+        return;
+      }
       const gridId = view === 'days' ? 'grid-days' : view === 'months' ? 'grid-months' : 'grid-years';
       const className = view === 'days' ? '.cell.day' : view === 'months' ? '.cell.month' : '.cell.year';
       const cols = view === 'days' ? 7 : window.innerWidth <= 600 ? 3 : view === 'months' ? 4 : 7;
@@ -744,10 +2229,10 @@
       const outAnimation = direction === 'next' ? 'slideNextOut' : 'slidePrevOut';
       const inAnimation = direction === 'next' ? 'slideNextIn' : 'slidePrevIn';
       const rowCount = Math.ceil(expectedCount / cols);
-      const rowDuration = 300;
-      const inDuration = 300;
-      const rowStep = 120;
-      const cellStep = 15;
+      const rowDuration = Math.round(300 * factor);
+      const inDuration = Math.round(300 * factor);
+      const rowStep = Math.round(120 * factor);
+      const cellStep = Math.round(15 * factor);
 
       animateHeader(direction, 'out', changes);
 
@@ -776,7 +2261,7 @@
               if (view === 'days') {
                 cell.dataset.day = String(nextCell.value);
                 cell.dataset.shift = String(nextCell.monthShift);
-                cell.textContent = String(nextCell.value);
+                cell.innerHTML = getDayCellContent(nextCell);
               } else if (view === 'months') {
                 cell.dataset.month = String(nextCell.monthIndex);
                 cell.innerHTML = `<span>${nextCell.label}</span><span class="month-sub">${nextCell.sub}</span>`;
@@ -796,6 +2281,7 @@
       const totalDuration = (rowCount - 1) * rowStep + rowTail + 80;
       setTimeout(() => {
         if (view === 'days') bindDayCellClicks(grid);
+        if (view === 'days') applyDualStatusSequence(grid, true);
         if (view === 'months') bindMonthCellClicks(grid);
         if (view === 'years') bindYearCellClicks(grid);
         isAnimating = false;
@@ -826,5 +2312,3 @@
   </script>
 </body>
 </html>
-
-
